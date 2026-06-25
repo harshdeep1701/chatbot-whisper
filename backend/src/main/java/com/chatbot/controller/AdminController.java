@@ -1,5 +1,6 @@
 package com.chatbot.controller;
 
+import com.chatbot.model.User;
 import com.chatbot.service.TokenQuotaService;
 import com.chatbot.service.UserService;
 import org.slf4j.Logger;
@@ -7,11 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
+import java.util.*;
 
 /**
- * Admin-only endpoints — NOT exposed on the UI.
- * Used for manual operations like upgrading users to premium tier.
+ * Admin-only endpoints. Secured by JWT + ADMIN role.
+ * Used for user management, tier upgrades, and system oversight.
  */
 @RestController
 @RequestMapping("/api/admin")
@@ -28,30 +29,55 @@ public class AdminController {
     }
 
     /**
-     * Upgrades a user to the premium tier (1M tokens/day).
-     * <p>
-     * Usage:  POST /api/admin/upgrade
-     * Body:   { "userId": 123 }
-     * <p>
-     * This endpoint is intentionally NOT exposed in the frontend UI.
+     * Lists all registered users with token usage and tier info.
+     * GET /api/admin/users
      */
-    @PostMapping("/upgrade")
-    public ResponseEntity<Map<String, Object>> upgradeUser(@RequestBody Map<String, Long> request) {
-        Long userId = request.get("userId");
-        if (userId == null) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false, "error", "userId is required"
+    @GetMapping("/users")
+    public ResponseEntity<Map<String, Object>> listUsers() {
+        try {
+            List<User> users = userService.listAllUsers();
+            List<Map<String, Object>> result = new ArrayList<>();
+
+            for (User user : users) {
+                Map<String, Object> entry = new LinkedHashMap<>();
+                entry.put("id", user.getId());
+                entry.put("username", user.getUsername());
+                entry.put("email", user.getEmail());
+                entry.put("role", user.getRole());
+                entry.put("tier", user.isPremium() ? "premium" : "free");
+                entry.put("totalTokensUsed", tokenQuotaService.getTotalTokensUsed(user.getId()));
+                entry.put("remainingToday", tokenQuotaService.getRemainingTokens(user.getId()));
+                entry.put("premiumSince", user.getPremiumUpgradedAt());
+                entry.put("createdAt", user.getCreatedAt());
+                result.add(entry);
+            }
+
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "count", result.size(),
+                    "users", result
+            ));
+        } catch (Exception e) {
+            log.error("Admin list users failed: {}", e.getMessage());
+            return ResponseEntity.internalServerError().body(Map.of(
+                    "success", false, "error", e.getMessage()
             ));
         }
+    }
 
+    /**
+     * Upgrades a user to the premium tier.
+     * POST /api/admin/users/{userId}/premium
+     */
+    @PostMapping("/users/{userId}/premium")
+    public ResponseEntity<Map<String, Object>> upgradeUser(@PathVariable Long userId) {
         try {
             userService.upgradeToPremium(userId);
             log.info("Admin upgrade — userId={}", userId);
             return ResponseEntity.ok(Map.of(
                     "success", true,
                     "userId", userId,
-                    "tier", "premium",
-                    "dailyTokenLimit", 1_000_000
+                    "tier", "premium"
             ));
         } catch (Exception e) {
             log.error("Admin upgrade failed — userId={}, error: {}", userId, e.getMessage());
@@ -62,17 +88,83 @@ public class AdminController {
     }
 
     /**
-     * Returns the user's current tier and remaining tokens.
+     * Downgrades a user back to the free tier.
+     * POST /api/admin/users/{userId}/free
+     */
+    @PostMapping("/users/{userId}/free")
+    public ResponseEntity<Map<String, Object>> downgradeUser(@PathVariable Long userId) {
+        try {
+            userService.downgradeToFree(userId);
+            log.info("Admin downgrade — userId={}", userId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "userId", userId,
+                    "tier", "free"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "error", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Grants ADMIN role to a user.
+     * POST /api/admin/users/{userId}/make-admin
+     */
+    @PostMapping("/users/{userId}/make-admin")
+    public ResponseEntity<Map<String, Object>> makeAdmin(@PathVariable Long userId) {
+        try {
+            userService.makeAdmin(userId);
+            log.info("Admin promotion — userId={}", userId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "userId", userId,
+                    "role", "ADMIN"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "error", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Removes ADMIN role from a user.
+     * POST /api/admin/users/{userId}/remove-admin
+     */
+    @PostMapping("/users/{userId}/remove-admin")
+    public ResponseEntity<Map<String, Object>> removeAdmin(@PathVariable Long userId) {
+        try {
+            userService.removeAdmin(userId);
+            log.info("Admin demotion — userId={}", userId);
+            return ResponseEntity.ok(Map.of(
+                    "success", true,
+                    "userId", userId,
+                    "role", "USER"
+            ));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "error", e.getMessage()
+            ));
+        }
+    }
+
+    /**
+     * Returns quota info for a specific user.
+     * GET /api/admin/quota/{userId}
      */
     @GetMapping("/quota/{userId}")
     public ResponseEntity<Map<String, Object>> getUserQuota(@PathVariable Long userId) {
         try {
             String tier = userService.getUserTier(userId);
             int remaining = tokenQuotaService.getRemainingTokens(userId);
+            int totalUsed = tokenQuotaService.getTotalTokensUsed(userId);
             return ResponseEntity.ok(Map.of(
                     "userId", userId,
                     "tier", tier,
-                    "remainingTokens", remaining
+                    "remainingToday", remaining,
+                    "totalTokensUsed", totalUsed
             ));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(Map.of(

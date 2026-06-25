@@ -26,19 +26,20 @@ public class JwtTokenProvider {
         this.expirationMs = expirationMs;
     }
 
-    public String generateToken(String username, Long userId) {
+    public String generateToken(String username, Long userId, String role) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
 
         String token = Jwts.builder()
                 .subject(username)
                 .claim("userId", userId)
+                .claim("role", role)
                 .issuedAt(now)
                 .expiration(expiry)
                 .signWith(secretKey)
                 .compact();
 
-        log.debug("Generated JWT for user={}, expires={}", username, expiry);
+        log.debug("Generated JWT for user={}, role={}, expires={}", username, role, expiry);
         return token;
     }
 
@@ -48,6 +49,10 @@ public class JwtTokenProvider {
 
     public Long getUserIdFromToken(String token) {
         return parseClaims(token).get("userId", Long.class);
+    }
+
+    public String getRoleFromToken(String token) {
+        return parseClaims(token).get("role", String.class);
     }
 
     public boolean validateToken(String token) {

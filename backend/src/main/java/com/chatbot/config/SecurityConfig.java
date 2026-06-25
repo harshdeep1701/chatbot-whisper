@@ -32,8 +32,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 // Health check endpoint (no auth required)
                 .requestMatchers("/api/chat/health").permitAll()
-                // H2 console (dev only)
+                // H2 console (accessible without auth, password-protected)
                 .requestMatchers("/h2-console/**").permitAll()
+                // Admin endpoints require ADMIN role
+                .requestMatchers("/api/admin/**").hasRole("ADMIN")
                 // All other API endpoints require authentication
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()

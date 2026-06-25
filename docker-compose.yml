@@ -29,8 +29,8 @@ services:
       # Use H2 file-based database stored in the mounted volume
       - SPRING_DATASOURCE_URL=jdbc:h2:file:/app/data/chatbot;AUTO_RECONNECT=TRUE
       - SPRING_DATASOURCE_USERNAME=sa
-      - SPRING_DATASOURCE_PASSWORD=
-      - SPRING_H2_CONSOLE_ENABLED=false
+      - SPRING_DATASOURCE_PASSWORD=${H2DB_PASSWORD:-chatbot_h2_secure_2024}
+      - SPRING_H2_CONSOLE_ENABLED=true
       - SERVER_PORT=8080
     volumes:
       # Persist H2 database between restarts

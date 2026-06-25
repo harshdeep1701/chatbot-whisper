@@ -104,4 +104,11 @@ public class TokenQuotaService {
         int used = (todayUsage != null) ? todayUsage.getTokensUsed() : 0;
         return Math.max(0, limit - used);
     }
+
+    /**
+     * Returns total tokens ever consumed by a user (all-time, not just today).
+     */
+    public int getTotalTokensUsed(Long userId) {
+        return tokenUsageRepository.getTotalTokensUsedByUser(userId);
+    }
 }

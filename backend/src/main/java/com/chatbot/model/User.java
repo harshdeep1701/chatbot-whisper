@@ -23,6 +23,9 @@ public class User {
     @Column(name = "premium", nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean premium = false;
 
+    @Column(name = "role", nullable = false, length = 20, columnDefinition = "VARCHAR(20) DEFAULT 'USER'")
+    private String role = "USER";   // USER or ADMIN
+
     @Column(name = "premium_upgraded_at")
     private LocalDateTime premiumUpgradedAt;
 
@@ -63,6 +66,9 @@ public class User {
     public void setPassword(String password) { this.password = password; }
     public boolean isPremium() { return premium; }
     public void setPremium(boolean premium) { this.premium = premium; }
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+    public boolean isAdmin() { return "ADMIN".equalsIgnoreCase(role); }
     public LocalDateTime getPremiumUpgradedAt() { return premiumUpgradedAt; }
     public void setPremiumUpgradedAt(LocalDateTime premiumUpgradedAt) { this.premiumUpgradedAt = premiumUpgradedAt; }
     public LocalDateTime getCreatedAt() { return createdAt; }

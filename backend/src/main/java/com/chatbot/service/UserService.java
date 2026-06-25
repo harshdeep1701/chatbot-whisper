@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserService {
 
@@ -45,7 +47,7 @@ public class UserService {
         );
         user = userRepository.save(user);
 
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId());
+        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId(), user.getRole());
         log.info("User registered successfully: username={}, id={}", user.getUsername(), user.getId());
         return new AuthResponse(token, user.getUsername(), user.getId());
     }
@@ -62,7 +64,7 @@ public class UserService {
             return AuthResponse.error("Invalid username or password");
         }
 
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId());
+        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId(), user.getRole());
         log.info("User logged in: username={}, id={}", user.getUsername(), user.getId());
         return new AuthResponse(token, user.getUsername(), user.getId());
     }
@@ -87,5 +89,46 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("User not found: " + userId));
         return user.isPremium() ? "premium" : "free";
+    }
+
+    /**
+     * Returns all users ordered by creation date (newest first).
+     */
+    public List<User> listAllUsers() {
+        return userRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    /**
+     * Downgrades a user from premium back to free tier.
+     */
+    public void downgradeToFree(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        user.setPremium(false);
+        user.setPremiumUpgradedAt(null);
+        userRepository.save(user);
+        log.info("User downgraded to free: username={}, id={}", user.getUsername(), userId);
+    }
+
+    /**
+     * Grants ADMIN role to a user.
+     */
+    public void makeAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        user.setRole("ADMIN");
+        userRepository.save(user);
+        log.info("User promoted to ADMIN: username={}, id={}", user.getUsername(), userId);
+    }
+
+    /**
+     * Removes ADMIN role from a user (demotes to USER).
+     */
+    public void removeAdmin(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        user.setRole("USER");
+        userRepository.save(user);
+        log.info("ADMIN role removed: username={}, id={}", user.getUsername(), userId);
     }
 }
