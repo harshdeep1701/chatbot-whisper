@@ -18,7 +18,10 @@ export class SpeechService {
   // Speech recognition events
   speechEvents$ = this.recognitionSubject.asObservable();
 
-  constructor() {
+  constructor() {}
+
+  private ensureRecognition(): void {
+    if (this.recognition) return;
     const SpeechRecognition =
       (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -65,6 +68,7 @@ export class SpeechService {
   }
 
   startListening(): void {
+    this.ensureRecognition();
     if (!this.recognition || this.isListening) return;
     this.isListening = true;
     try {
