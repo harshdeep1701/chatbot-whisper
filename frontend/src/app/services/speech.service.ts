@@ -59,12 +59,17 @@ export class SpeechService {
         this.clearTimers();
         this.recognitionSubject.next({ type: 'error', error: event.error });
         this.isListening = false;
+        // Destroy the instance so a fresh one is created on next startListening()
+        this.recognition = null;
       };
 
       this.recognition.onend = () => {
         this.clearTimers();
         this.isListening = false;
         this.recognitionSubject.next({ type: 'end' });
+        // SpeechRecognition cannot be restarted after end — destroy so
+        // ensureRecognition() creates a fresh instance next time
+        this.recognition = null;
       };
     }
   }
@@ -89,6 +94,9 @@ export class SpeechService {
   }
 
   startListening(): void {
+    // Always destroy the old instance so a fresh one is created —
+    // this ensures first-time microphone permission prompts work reliably.
+    this.recognition = null;
     this.ensureRecognition();
     if (!this.recognition || this.isListening) return;
     this.isListening = true;
@@ -96,7 +104,10 @@ export class SpeechService {
       this.recognition.start();
       this.startMaxDurationTimer();
     } catch (e) {
-      // Already started
+      // First call may fail (e.g. permission prompt not yet resolved).
+      // Reset so the user can try again on the next click.
+      this.recognition = null;
+      this.isListening = false;
     }
   }
 

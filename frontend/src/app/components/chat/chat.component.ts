@@ -85,6 +85,11 @@ export class ChatComponent implements OnInit, OnDestroy {
         }
         if (event.type === 'error') {
           this.isListening = false;
+          if (event.error === 'not-allowed') {
+            this.addSystemMessage(
+              '🎤 Microphone access was denied. Please allow microphone access in your browser settings and try again, or switch to Whisper STT in Settings.'
+            );
+          }
         }
         if (event.type === 'timeout-maxduration') {
           this.isListening = false;
