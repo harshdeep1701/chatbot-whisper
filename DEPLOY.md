@@ -1,103 +1,119 @@
-# Cosmo-Chat — VPS Deployment Guide
+# Chatbot Whisper — VPS Deployment Guide
 
-This guide walks you through deploying Cosmo-Chat on an Ubuntu VPS using Docker Compose.
+Deploys alongside [harshdeep.tech](https://harshdeep.tech) at `harshdeep.tech/chat-bot`.
 
 ---
 
 ## Prerequisites
 
-- **Ubuntu 22.04+** VPS with root or sudo access
-- **A domain name** pointed to your VPS IP address (A record)
-- **Ports 80 and 443** open in your firewall
+- Same Ubuntu VPS running harshdeep-tech (nginx + certbot already set up)
+- Docker & Docker Compose installed
+- Git access to the private repo
 
-## 1. Install Docker & Docker Compose
-
-```bash
-# Install Docker
-curl -fsSL https://get.docker.com | sh
-sudo usermod -aG docker $USER
-# Log out and back in, or run: newgrp docker
-
-# Verify
-docker --version
-docker compose version
-```
-
-## 2. Clone and Configure
+## 1. Clone and Configure
 
 ```bash
-git clone <your-repo-url> cosmo-chat
-cd cosmo-chat
+cd /var/www
+git clone https://YOUR_TOKEN@github.com/harshdeep1701/chatbot-whisper.git
+cd chatbot-whisper
 
-# Create environment file from the example
-cp .env.example .env
+# Create .env from example, or create it directly
+cat > .env << 'EOF'
+DEEPSEEK_API_KEY=sk-your-key
+OPENAI_API_KEY=sk-your-key
+GEMINI_API_KEY=your-key
+JWT_SECRET=$(openssl rand -base64 32)
+DOMAIN_NAME=harshdeep.tech
+EOF
 
-# Edit .env with your real API keys and domain
+# Edit .env with real keys
 nano .env
 ```
 
-Fill in `.env`:
-
-| Variable | Description |
-|---|---|
-| `DEEPSEEK_API_KEY` | Your DeepSeek API key |
-| `OPENAI_API_KEY` | Your OpenAI API key (for Whisper STT/TTS) |
-| `GEMINI_API_KEY` | Your Google AI Gemini API key |
-| `JWT_SECRET` | A random 32+ char string (`openssl rand -base64 32`) |
-| `DOMAIN_NAME` | Your domain, e.g. `chat.yourdomain.com` |
-
-## 3. Start the Application
+## 2. Start the Application
 
 ```bash
 docker compose up -d --build
 ```
 
-This builds and starts both services:
-
-| Service | Container Name | Port |
+| Service | Container | Host Port (localhost only) |
 |---|---|---|
-| Backend (Spring Boot) | `cosmo-chat-backend` | 8080 |
-| Frontend (Nginx) | `cosmo-chat-frontend` | 80 |
+| Backend (Spring Boot) | `cosmo-chat-backend` | `127.0.0.1:8081` |
+| Frontend (Angular) | `cosmo-chat-frontend` | `127.0.0.1:4200` |
 
-Check logs:
-```bash
-docker compose logs -f
-```
+Ports are bound to `127.0.0.1` only — not exposed to the internet. The VPS nginx proxies requests.
 
-## 4. Set Up HTTPS with Certbot
+## 3. Update VPS Nginx
 
-```bash
-# Run Certbot to get SSL certificates
-docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d ${DOMAIN_NAME}
-```
-
-Then:
-
-1. Uncomment the `443:443` port mapping in `docker-compose.yml` under the `frontend` service
-2. Create `frontend/nginx-ssl.conf` (or uncomment SSL sections in nginx.conf) and restart:
+The harshdeep-tech nginx config already includes proxy rules for `/chat-bot/` and `/api/`. If you need to update it manually:
 
 ```bash
-docker compose up -d --build frontend
+sudo nano /etc/nginx/sites-available/harshdeep-tech
 ```
 
-> **Alternative:** Install Certbot directly on the host:
-> ```bash
-> sudo apt install certbot python3-certbot-nginx
-> sudo certbot --nginx -d your-domain.com
-> ```
+Ensure these blocks exist before the `location /` SPA fallback:
 
-## 5. Verify
+```nginx
+location /chat-bot/ {
+    rewrite ^/chat-bot/(.*)$ /$1 break;
+    proxy_pass http://127.0.0.1:4200;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
 
-- Visit `https://your-domain.com` — you should see the Cosmo-Chat login page
-- Health endpoint: `https://your-domain.com/api/chat/health`
+location /chat-bot {
+    return 301 /chat-bot/;
+}
+
+location /api/ {
+    proxy_pass http://127.0.0.1:8081;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection 'upgrade';
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+}
+```
+
+Then reload:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+## 4. Verify
+
+- Visit `https://harshdeep.tech/chat-bot` — login page
+- Health check: `https://harshdeep.tech/api/chat/health`
 
 ## Useful Commands
 
 ```bash
-# View real-time logs
-docker compose logs -f
+docker compose logs -f          # tail all logs
+docker compose restart backend  # restart backend only
+docker compose down             # stop all containers
+docker compose up -d --build    # rebuild and restart
+```
 
-# Restart a service
+## Updating
+
+```bash
+cd /var/www/chatbot-whisper
+git pull
+docker compose up -d --build
+sudo systemctl reload nginx   # only if nginx.conf changed
+```
+
+## HTTPS
+
+No separate certbot setup needed — harshdeep.tech's existing HTTPS covers all subpaths.
 docker compose restart backend
 
 # Rebuild after code changes

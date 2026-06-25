@@ -11,7 +11,7 @@ RUN npm ci --loglevel=warn
 
 # Copy source and build for production
 COPY . .
-RUN npm run build -- --configuration=production
+RUN npm run build -- --configuration=production --base-href=/chat-bot/
 
 # ============================================================
 # Stage 2: Serve with Nginx
