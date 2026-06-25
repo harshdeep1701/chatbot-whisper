@@ -1,0 +1,46 @@
+<div class="app-container">
+  <!-- Sidebar (only show on chat/authenticated pages) -->
+  <aside class="sidebar" *ngIf="!isAuthPage()">
+    <div class="sidebar-header">
+      <div class="logo">
+        <i class="fas fa-robot"></i>
+        <span>Cosmo-Chat</span>
+      </div>
+    </div>
+    <div class="sidebar-content">
+      <div class="model-badge">
+        <i class="fas fa-microchip"></i>
+        <span>AI Chat</span>
+      </div>
+      <div class="intro-text">
+        <p>Voice-enabled AI assistant with speech-to-text and text-to-speech capabilities.</p>
+      </div>
+    </div>
+    <div class="sidebar-footer">
+      <div class="user-info" *ngIf="currentUser">
+        <div class="user-avatar">
+          <i class="fas fa-user-circle"></i>
+        </div>
+        <span class="user-name">{{ currentUser.username }}</span>
+      </div>
+      <div class="footer-buttons">
+        <button class="settings-btn" (click)="toggleSettings()">
+          <i class="fas fa-cog"></i>
+          <span>Settings</span>
+        </button>
+        <button class="logout-btn" (click)="logout()" title="Sign out">
+          <i class="fas fa-sign-out-alt"></i>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content Area (routed) -->
+  <main class="main-area">
+    <router-outlet></router-outlet>
+  </main>
+
+  <!-- Settings Panel -->
+  <div class="settings-overlay" *ngIf="showSettings" (click)="showSettings = false"></div>
+  <app-settings *ngIf="showSettings" (close)="showSettings = false"></app-settings>
+</div>

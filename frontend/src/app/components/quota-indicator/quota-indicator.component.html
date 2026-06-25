@@ -1,0 +1,40 @@
+<div
+  class="quota-indicator"
+  [class.loading]="isLoading"
+  [class.error]="error"
+  [class]="colorClass"
+  [title]="tooltipText"
+>
+  <!-- Circular progress ring -->
+  <svg class="quota-ring" viewBox="0 0 36 36" *ngIf="!isLoading && !error">
+    <!-- Background track -->
+    <path
+      class="ring-bg"
+      d="M18 2.0845
+         a 15.9155 15.9155 0 0 1 0 31.831
+         a 15.9155 15.9155 0 0 1 0 -31.831"
+      fill="none"
+      stroke-width="3"
+    />
+    <!-- Progress arc -->
+    <path
+      class="ring-fill"
+      [attr.d]="'M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831'"
+      fill="none"
+      stroke-width="3"
+      stroke-linecap="round"
+      [attr.stroke-dasharray]="circumference"
+      [attr.stroke-dashoffset]="strokeDashoffset"
+    />
+  </svg>
+
+  <!-- Loading spinner -->
+  <div class="quota-loading" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+  </div>
+
+  <!-- Error state -->
+  <div class="quota-error" *ngIf="error">
+    <i class="fas fa-exclamation-triangle"></i>
+  </div>
+</div>

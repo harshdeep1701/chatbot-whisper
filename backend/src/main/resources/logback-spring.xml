@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ── Console appender (stdout) ── -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ── Rolling file appender (2 MB per file, archived into versions/) ── -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/chatbot-whisper.log</file>
+
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <!-- Archived files go into versions/ subdirectory -->
+            <fileNamePattern>logs/versions/chatbot-whisper-%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <!-- Max size per file before rolling -->
+            <maxFileSize>2MB</maxFileSize>
+            <!-- Keep up to 30 days of history -->
+            <maxHistory>30</maxHistory>
+            <!-- Total size cap for all archive files -->
+            <totalSizeCap>100MB</totalSizeCap>
+        </rollingPolicy>
+
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ── Root logger ── -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!-- ── Application logging levels ── -->
+    <logger name="com.chatbot" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- ── WebClient / WebFlux logging (reduce noise) ── -->
+    <logger name="org.springframework.web.reactive.function.client" level="INFO"/>
+
+</configuration>

@@ -1,0 +1,9 @@
+<button
+  class="voice-btn"
+  [class.listening]="isListening"
+  (click)="toggleListening()"
+  [title]="isListening ? 'Stop listening' : 'Start voice input'"
+>
+  <i class="fas" [class.fa-microphone]="!isListening" [class.fa-microphone-slash]="isListening"></i>
+  <span class="voice-label">{{ isListening ? 'Listening...' : 'Voice Input' }}</span>
+</button>

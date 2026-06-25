@@ -1,0 +1,87 @@
+<div class="settings-panel">
+  <div class="settings-header">
+    <h2><i class="fas fa-cog"></i> Settings</h2>
+    <button class="close-btn" (click)="onClose()">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+
+  <div class="settings-body">
+    <!-- Backend Status -->
+    <section class="settings-section">
+      <h3>Backend Connection</h3>
+      <div class="status-row">
+        <span class="label">API URL</span>
+        <span class="value">{{ backendUrl }}</span>
+      </div>
+      <div class="status-row">
+        <span class="label">Status</span>
+        <span class="badge" [class.connected]="backendStatus === 'connected'" [class.disconnected]="backendStatus !== 'connected'">
+          <i class="fas" [class.fa-check-circle]="backendStatus === 'connected'" [class.fa-spinner]="backendStatus === 'checking'" [class.fa-times-circle]="backendStatus === 'disconnected'"></i>
+          {{ backendStatus }}
+        </span>
+      </div>
+    </section>
+
+    <!-- Speech Settings -->
+    <section class="settings-section">
+      <h3>Speech Recognition (STT)</h3>
+      <div class="setting-row">
+        <span class="label">Provider</span>
+        <select [(ngModel)]="sttProvider" class="setting-select">
+          <option value="browser">Browser (Native)</option>
+          <option value="whisper">OpenAI Whisper</option>
+        </select>
+      </div>
+      <p class="setting-hint">
+        Browser uses your device's built-in speech recognition. Whisper sends audio to the server for AI-powered transcription.
+      </p>
+    </section>
+
+    <section class="settings-section">
+      <h3>Text-to-Speech (TTS)</h3>
+      <div class="setting-row">
+        <span class="label">Provider</span>
+        <select [(ngModel)]="ttsProvider" class="setting-select">
+          <option value="browser">Browser (Native)</option>
+          <option value="server">OpenAI TTS</option>
+        </select>
+      </div>
+      <div class="setting-row" *ngIf="ttsProvider === 'server'">
+        <span class="label">Voice</span>
+        <select [(ngModel)]="voiceName" class="setting-select">
+          <option value="alloy">Alloy</option>
+          <option value="echo">Echo</option>
+          <option value="fable">Fable</option>
+          <option value="onyx">Onyx</option>
+          <option value="nova">Nova</option>
+          <option value="shimmer">Shimmer</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <label class="toggle-label">
+          <input type="checkbox" [(ngModel)]="autoSpeak">
+          <span class="toggle-switch"></span>
+          Auto-speak responses
+        </label>
+      </div>
+    </section>
+
+    <!-- LLM Settings -->
+    <section class="settings-section">
+      <h3>AI Model</h3>
+      <div class="setting-row">
+        <span class="label">Model</span>
+        <span class="value">{{ modelName }}</span>
+      </div>
+      <div class="setting-row">
+        <span class="label">Temperature</span>
+        <span class="value">{{ temperature }}</span>
+      </div>
+      <div class="setting-row">
+        <span class="label">Max Tokens</span>
+        <span class="value">{{ maxTokens }}</span>
+      </div>
+    </section>
+  </div>
+</div>

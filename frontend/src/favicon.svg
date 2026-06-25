@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4f46e5;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#7c3aed;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="20" fill="url(#grad)"/>
+  <!-- Chat bubble -->
+  <path d="M25 35 C25 28 31 22 38 22 L62 22 C69 22 75 28 75 35 L75 55 C75 62 69 68 62 68 L50 68 L38 78 L38 68 L38 68 C31 68 25 62 25 55 Z" fill="white"/>
+  <!-- Three dots -->
+  <circle cx="40" cy="45" r="4" fill="#4f46e5"/>
+  <circle cx="50" cy="45" r="4" fill="#4f46e5"/>
+  <circle cx="60" cy="45" r="4" fill="#4f46e5"/>
+</svg>

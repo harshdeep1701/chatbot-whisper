@@ -1,0 +1,74 @@
+server:
+  port: 8080
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+
+  # H2 Database (file-based)
+  datasource:
+    url: jdbc:h2:file:./data/chatbot;AUTO_RECONNECT=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  # JPA / Hibernate
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+
+  # H2 Console (dev access)
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+# JWT Configuration
+jwt:
+  secret: ${JWT_SECRET:ChatBotWhisperSecretKey2024MustBeAtLeast256BitsLong!ChangeInProd}
+  expiration: 86400000  # 24 hours in ms
+
+# Rate Limiting (per-user daily token quotas)
+ratelimit:
+  free:
+    daily-tokens: 100000
+  premium:
+    daily-tokens: 1000000
+
+google:
+  gemini:
+    api-key: ${GEMINI_API_KEY}
+    model: gemini-3.1-flash-lite
+    # Enables Google Search Grounding — the model automatically fetches
+    # fresh web results when it needs up-to-date information
+    google-search: true
+    log-requests: false
+    log-responses: false
+
+deepseek:
+  api:
+    key: ${DEEPSEEK_API_KEY}
+    url: https://api.deepseek.com/v1/chat/completions
+  model: deepseek-chat
+
+openai:
+  api:
+    key: ${OPENAI_API_KEY}
+  whisper:
+    api:
+      url: https://api.openai.com/v1/audio/transcriptions
+    model: whisper-1
+  tts:
+    api:
+      url: https://api.openai.com/v1/audio/speech
+    model: tts-1
+    voice: alloy
+
+# Logging configuration moved to logback-spring.xml

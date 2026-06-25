@@ -1,0 +1,101 @@
+# ============================================================
+# Cosmo-Chat — Docker Compose for production deployment
+#
+# Deploy on an Ubuntu VPS:
+#   1. Install Docker & Docker Compose
+#   2. Copy .env.example to .env and fill in your secrets
+#   3. docker compose up -d --build
+#   4. Set up HTTPS:
+#      docker compose run --rm certbot certonly
+#      (or use the certbot service below)
+# ============================================================
+name: cosmo-chat
+
+services:
+  # ── Backend — Spring Boot (Java 17) ─────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cosmo-chat-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - JWT_SECRET=${JWT_SECRET}
+      # Use H2 file-based database stored in the mounted volume
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:/app/data/chatbot;AUTO_RECONNECT=TRUE
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=
+      - SPRING_H2_CONSOLE_ENABLED=false
+      - SERVER_PORT=8080
+    volumes:
+      # Persist H2 database between restarts
+      - h2-data:/app/data
+      - backend-logs:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:8080/api/chat/health"]
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    networks:
+      - cosmo-chat-network
+
+  # ── Frontend — Angular served by Nginx ──────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: cosmo-chat-frontend
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      # Remove the comment on the next line after HTTPS is set up:
+      # - "443:443"
+    environment:
+      - DOMAIN_NAME=${DOMAIN_NAME}
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-s", "http://localhost:80/"]
+      interval: 30s
+      timeout: 5s
+      start_period: 10s
+      retries: 3
+    networks:
+      - cosmo-chat-network
+
+  # ── (Optional) Certbot — automated SSL certificates ─────
+  # Uncomment and run once to get HTTPS certificates:
+  #   docker compose run --rm certbot certonly --webroot -w /var/www/certbot -d ${DOMAIN_NAME}
+  #
+  # Then uncomment the 443 port mapping and SSL config in nginx.conf.
+  # certbot:
+  #   image: certbot/certbot:latest
+  #   container_name: cosmo-chat-certbot
+  #   volumes:
+  #     - certbot-www:/var/www/certbot
+  #     - certbot-conf:/etc/letsencrypt
+  #   profiles:
+  #     - manual
+  #   networks:
+  #     - cosmo-chat-network
+
+volumes:
+  h2-data:
+    driver: local
+  backend-logs:
+    driver: local
+  # certbot-www:
+  #   driver: local
+  # certbot-conf:
+  #   driver: local
+
+networks:
+  cosmo-chat-network:
+    driver: bridge

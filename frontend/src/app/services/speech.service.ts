@@ -1,0 +1,109 @@
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs';
+
+export interface SpeechEvent {
+  type: 'interim' | 'final' | 'error' | 'end';
+  text?: string;
+  error?: string;
+}
+
+@Injectable({
+  providedIn: 'root'
+})
+export class SpeechService {
+  private recognition: any;
+  private recognitionSubject = new Subject<SpeechEvent>();
+  private isListening = false;
+
+  // Speech recognition events
+  speechEvents$ = this.recognitionSubject.asObservable();
+
+  constructor() {
+    const SpeechRecognition =
+      (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      this.recognition = new SpeechRecognition();
+      this.recognition.continuous = true;
+      this.recognition.interimResults = true;
+      this.recognition.lang = 'en-US';
+
+      this.recognition.onresult = (event: any) => {
+        let interimText = '';
+        let finalText = '';
+
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalText += transcript;
+          } else {
+            interimText += transcript;
+          }
+        }
+
+        if (finalText) {
+          this.recognitionSubject.next({ type: 'final', text: finalText });
+        }
+        if (interimText) {
+          this.recognitionSubject.next({ type: 'interim', text: interimText });
+        }
+      };
+
+      this.recognition.onerror = (event: any) => {
+        this.recognitionSubject.next({ type: 'error', error: event.error });
+        this.isListening = false;
+      };
+
+      this.recognition.onend = () => {
+        this.isListening = false;
+        this.recognitionSubject.next({ type: 'end' });
+      };
+    }
+  }
+
+  isSupported(): boolean {
+    return this.recognition != null;
+  }
+
+  startListening(): void {
+    if (!this.recognition || this.isListening) return;
+    this.isListening = true;
+    try {
+      this.recognition.start();
+    } catch (e) {
+      // Already started
+    }
+  }
+
+  stopListening(): void {
+    if (!this.recognition || !this.isListening) return;
+    this.isListening = false;
+    this.recognition.stop();
+  }
+
+  getIsListening(): boolean {
+    return this.isListening;
+  }
+
+  // Text-to-Speech
+  speak(text: string, onEnd?: () => void): void {
+    if (!('speechSynthesis' in window)) {
+      console.warn('Speech synthesis not supported');
+      return;
+    }
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 1.1;
+    utterance.pitch = 1;
+    if (onEnd) {
+      utterance.onend = onEnd;
+    }
+    window.speechSynthesis.speak(utterance);
+  }
+
+  stopSpeaking(): void {
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+}
