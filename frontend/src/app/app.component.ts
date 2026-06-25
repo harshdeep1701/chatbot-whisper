@@ -8,7 +8,7 @@ import { AuthService, UserInfo } from './services/auth.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'ChatBot Whisper';
+  title = 'Cosmo-Chat';
   showSettings = false;
   currentUser: UserInfo | null = null;
   isAdmin = false;

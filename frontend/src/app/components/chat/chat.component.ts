@@ -24,11 +24,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   readAloudEnabled = true;
 
   private subs: Subscription[] = [];
+  private serverAudio: HTMLAudioElement | null = null;
 
   userId: number = 0;
 
   remainingTokens = -1;  // -1 = not yet loaded
   limitExceeded = false;
+
+  /** True while the browser mic is actively listening */
+  isListening = false;
+  /** True while Whisper audio is being transcribed */
+  isTranscribing = false;
+
 
   constructor(
     public chatService: ChatService,
@@ -40,6 +47,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    // Load speech settings from localStorage
+    this.loadSpeechSettings();
+
     // Get current user ID for quota
     const user = this.authService.getCurrentUser();
     if (user) {
@@ -62,8 +72,22 @@ export class ChatComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.speechService.speechEvents$.subscribe(event => {
         if (event.type === 'final' && event.text) {
+          this.isListening = false;
           this.userInput = event.text;
           this.sendMessage();
+        }
+        if (event.type === 'interim' && event.text) {
+          // Show live interim transcript in the input field
+          this.userInput = event.text;
+        }
+        if (event.type === 'end') {
+          this.isListening = false;
+        }
+        if (event.type === 'error') {
+          this.isListening = false;
+        }
+        if (event.type === 'timeout-maxduration') {
+          this.isListening = false;
         }
       })
     );
@@ -75,6 +99,7 @@ export class ChatComponent implements OnInit, OnDestroy {
           this.processWhisperStt(event.data);
         }
         if (event.type === 'error' && event.error) {
+          this.isTranscribing = false;
           this.addSystemMessage(`Recording error: ${event.error}`);
         }
       })
@@ -83,6 +108,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.forEach(s => s.unsubscribe());
+    // Stop any active recording
+    if (this.audioRecorderService.getIsRecording()) {
+      this.audioRecorderService.stopRecording();
+    }
+    // Stop any active speech recognition
+    if (this.speechService.getIsListening()) {
+      this.speechService.stopListening();
+    }
   }
 
   sendMessage(): void {
@@ -107,7 +140,9 @@ export class ChatComponent implements OnInit, OnDestroy {
 
     const history = this.messages.slice(0, -1);
     this.chatService.sendMessage(text, this.conversationId, history)
-      .pipe(finalize(() => this.isLoading = false))
+      .pipe(finalize(() => {
+        this.isLoading = false;
+      }))
       .subscribe({
         next: (response) => {
           if (response.success) {
@@ -137,28 +172,51 @@ export class ChatComponent implements OnInit, OnDestroy {
       });
   }
 
-  startVoiceInput(): void {
+  toggleVoiceInput(): void {
+    if (this.isTranscribing) {
+      return; // Don't toggle while transcribing
+    }
+
+    // Re-read latest STT setting from localStorage so changes apply immediately
+    this.loadSpeechSettings();
+
     if (this.useWhisperStt) {
-      // Use Whisper API (record audio, then send to server)
-      this.audioRecorderService.startRecording();
+      // Whisper: click to start recording, click again to stop
+      if (this.audioRecorderService.getIsRecording()) {
+        this.audioRecorderService.stopRecording();
+      } else {
+        // Stop any ongoing TTS before recording
+        if (this.isSpeaking) {
+          this.stopSpeaking();
+        }
+        this.audioRecorderService.startRecording();
+      }
     } else {
-      // Use browser native speech recognition
-      this.speechService.startListening();
+      // Browser STT: click toggles listening
+      if (this.speechService.getIsListening()) {
+        this.speechService.stopListening();
+        this.isListening = false;
+      } else {
+        // Stop any ongoing TTS before listening
+        if (this.isSpeaking) {
+          this.stopSpeaking();
+        }
+        this.isListening = true;
+        this.speechService.startListening();
+      }
     }
   }
 
-  stopVoiceInput(): void {
-    if (this.useWhisperStt) {
-      this.audioRecorderService.stopRecording();
-    } else {
-      this.speechService.stopListening();
-    }
-  }
+  private processWhisperStt(audioBlob: Blob): void {
+    this.isTranscribing = true;
+    // Force change detection — this callback may run outside Angular's zone
+    // (MediaRecorder.onstop is a native DOM event)
+    this.cdr.detectChanges();
 
-  private async processWhisperStt(audioBlob: Blob): Promise<void> {
-    this.isLoading = true;
     this.chatService.transcribeAudio(audioBlob)
-      .pipe(finalize(() => this.isLoading = false))
+      .pipe(finalize(() => {
+        this.isTranscribing = false;
+      }))
       .subscribe({
         next: (response) => {
           if (response.success && response.transcribedText) {
@@ -187,16 +245,20 @@ export class ChatComponent implements OnInit, OnDestroy {
       next: (blob) => {
         const url = URL.createObjectURL(blob);
         const audio = new Audio(url);
+        this.serverAudio = audio;
         audio.onended = () => {
           this.isSpeaking = false;
+          this.serverAudio = null;
           URL.revokeObjectURL(url);
         };
         audio.play().catch(() => {
           this.isSpeaking = false;
+          this.serverAudio = null;
         });
       },
       error: () => {
         this.isSpeaking = false;
+        this.serverAudio = null;
       }
     });
   }
@@ -204,18 +266,54 @@ export class ChatComponent implements OnInit, OnDestroy {
   toggleReadAloud(): void {
     this.readAloudEnabled = !this.readAloudEnabled;
     if (!this.readAloudEnabled) {
-      this.speechService.stopSpeaking();
-      this.isSpeaking = false;
+      this.stopSpeaking();
     }
   }
 
   stopSpeaking(): void {
+    // Stop browser speech synthesis
     this.speechService.stopSpeaking();
+    // Stop server-side audio playback
+    if (this.serverAudio) {
+      this.serverAudio.pause();
+      this.serverAudio.currentTime = 0;
+      this.serverAudio = null;
+    }
     this.isSpeaking = false;
   }
 
-  isMicActive(): boolean {
-    return this.speechService.getIsListening() || this.audioRecorderService.getIsRecording();
+  /** Load STT/TTS preferences from localStorage and auto-detect browser support */
+  private loadSpeechSettings(): void {
+    // Check if browser native speech recognition is supported
+    const browserSttSupported = this.speechService.isSupported();
+
+    try {
+      const saved = localStorage.getItem('cosmo-chat-settings');
+      if (saved) {
+        const settings = JSON.parse(saved);
+        // STT provider
+        if (settings.sttProvider === 'whisper') {
+          this.useWhisperStt = true;
+        } else if (settings.sttProvider === 'browser' && !browserSttSupported) {
+          // Browser STT selected but unsupported — auto-fallback to Whisper
+          this.useWhisperStt = true;
+          console.warn('Browser speech recognition not supported — falling back to Whisper STT');
+        } else {
+          this.useWhisperStt = false;
+        }
+        // TTS provider
+        if (settings.ttsProvider === 'server') {
+          this.useServerTts = true;
+        } else {
+          this.useServerTts = false;
+        }
+      } else if (!browserSttSupported) {
+        // No saved settings and browser STT unsupported — default to Whisper
+        this.useWhisperStt = true;
+      }
+    } catch {
+      // Ignore corrupt localStorage data
+    }
   }
 
   private addSystemMessage(content: string): void {

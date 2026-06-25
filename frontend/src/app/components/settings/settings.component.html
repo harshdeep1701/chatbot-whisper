@@ -28,7 +28,7 @@
       <h3>Speech Recognition (STT)</h3>
       <div class="setting-row">
         <span class="label">Provider</span>
-        <select [(ngModel)]="sttProvider" class="setting-select">
+        <select [(ngModel)]="sttProvider" (ngModelChange)="onSttChange()" class="setting-select">
           <option value="browser">Browser (Native)</option>
           <option value="whisper">OpenAI Whisper</option>
         </select>
@@ -42,7 +42,7 @@
       <h3>Text-to-Speech (TTS)</h3>
       <div class="setting-row">
         <span class="label">Provider</span>
-        <select [(ngModel)]="ttsProvider" class="setting-select">
+        <select [(ngModel)]="ttsProvider" (ngModelChange)="onTtsChange()" class="setting-select">
           <option value="browser">Browser (Native)</option>
           <option value="server">OpenAI TTS</option>
         </select>

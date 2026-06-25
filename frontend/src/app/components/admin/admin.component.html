@@ -1,27 +1,38 @@
 <div class="admin-container">
-  <div class="admin-header">
-    <button class="back-btn" routerLink="/chat">
+  <!-- Header -->
+  <div class="admin-header mat-card">
+    <button class="mat-btn mat-btn-secondary" routerLink="/chat">
       <i class="fas fa-arrow-left"></i> Back to Chat
     </button>
-    <h1>Admin Panel</h1>
-    <button class="refresh-btn" (click)="loadUsers()">
+    <div class="admin-title">
+      <i class="fas fa-shield-alt"></i>
+      <h1>Admin Panel</h1>
+    </div>
+    <button class="mat-btn mat-btn-primary" (click)="loadUsers()">
       <i class="fas fa-sync-alt"></i> Refresh
     </button>
   </div>
 
-  <div class="action-message" *ngIf="actionMessage" (click)="actionMessage = ''">
+  <!-- Action message toast -->
+  <div class="action-toast" *ngIf="actionMessage" (click)="actionMessage = ''">
+    <i class="fas fa-check-circle"></i>
     {{ actionMessage }}
   </div>
 
-  <div class="loading" *ngIf="isLoading">
-    <i class="fas fa-spinner fa-spin"></i> Loading users...
+  <!-- Loading state -->
+  <div class="loading-state" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i>
+    <span>Loading users...</span>
   </div>
 
-  <div class="error" *ngIf="error">
+  <!-- Error state -->
+  <div class="error-state" *ngIf="error">
+    <i class="fas fa-exclamation-triangle"></i>
     <p>{{ error }}</p>
   </div>
 
-  <div class="users-table-container" *ngIf="!isLoading && !error">
+  <!-- Users table -->
+  <div class="users-table-container mat-card" *ngIf="!isLoading && !error">
     <table class="users-table">
       <thead>
         <tr>
@@ -38,46 +49,49 @@
       </thead>
       <tbody>
         <tr *ngFor="let user of users">
-          <td>{{ user.id }}</td>
+          <td><span class="cell-id">{{ user.id }}</span></td>
           <td class="username-cell">{{ user.username }}</td>
           <td class="email-cell">{{ user.email }}</td>
           <td>
-            <span class="badge" [class.badge-admin]="user.role === 'ADMIN'" [class.badge-user]="user.role === 'USER'">
+            <span class="mat-badge" [class.mat-badge-primary]="user.role === 'ADMIN'" [class.mat-badge-secondary]="user.role === 'USER'">
+              <i class="fas" [class.fa-crown]="user.role === 'ADMIN'" [class.fa-user]="user.role === 'USER'"></i>
               {{ user.role }}
             </span>
           </td>
           <td>
-            <span class="badge" [class.badge-premium]="user.tier === 'premium'" [class.badge-free]="user.tier === 'free'">
+            <span class="mat-badge" [class.mat-badge-secondary]="user.tier === 'premium'" [class.mat-badge-accent]="user.tier === 'free'">
+              <i class="fas" [class.fa-star]="user.tier === 'premium'" [class.fa-circle]="user.tier === 'free'"></i>
               {{ user.tier }}
             </span>
           </td>
-          <td>{{ user.totalTokensUsed | number }}</td>
-          <td>{{ user.remainingTokens | number }}</td>
-          <td>{{ user.createdAt | date:'MMM d, y' }}</td>
+          <td class="num-cell">{{ user.totalTokensUsed | number }}</td>
+          <td class="num-cell">{{ user.remainingTokens | number }}</td>
+          <td class="date-cell">{{ user.createdAt | date:'MMM d, y' }}</td>
           <td class="actions-cell">
             <button
               *ngIf="user.tier === 'free'"
-              class="action-btn upgrade-btn"
+              class="mat-btn mat-btn-secondary action-sm"
               (click)="upgradeUser(user)"
               title="Upgrade to Premium"
             >
-              ⬆ Premium
+              <i class="fas fa-arrow-up"></i> Premium
             </button>
             <button
               *ngIf="user.tier === 'premium'"
-              class="action-btn downgrade-btn"
+              class="mat-btn mat-btn-secondary action-sm"
               (click)="downgradeUser(user)"
               title="Downgrade to Free"
             >
-              ⬇ Free
+              <i class="fas fa-arrow-down"></i> Free
             </button>
             <button
-              class="action-btn role-btn"
+              class="mat-btn mat-btn-secondary action-sm"
               [class.make-admin]="user.role !== 'ADMIN'"
               [class.remove-admin]="user.role === 'ADMIN'"
               (click)="toggleAdmin(user)"
             >
-              {{ user.role === 'ADMIN' ? '👑 Remove Admin' : '👤 Make Admin' }}
+              <i class="fas" [class.fa-user-shield]="user.role !== 'ADMIN'" [class.fa-user-minus]="user.role === 'ADMIN'"></i>
+              {{ user.role === 'ADMIN' ? 'Demote' : 'Promote' }}
             </button>
           </td>
         </tr>

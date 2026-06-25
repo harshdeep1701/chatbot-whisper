@@ -5,7 +5,7 @@
   overflow: hidden;
 }
 
-/* Sidebar */
+/* ── Sidebar ── */
 .sidebar {
   width: 280px;
   min-width: 280px;
@@ -18,21 +18,27 @@
   .sidebar-header {
     padding: 20px;
     border-bottom: 1px solid var(--border);
+    background: linear-gradient(135deg, rgba(124, 92, 191, 0.06), rgba(77, 182, 142, 0.04));
 
     .logo {
       display: flex;
       align-items: center;
       gap: 12px;
 
-      i {
-        font-size: 28px;
-        color: var(--primary);
+      .sidebar-logo-img {
+        width: 32px;
+        height: 32px;
+        object-fit: contain;
       }
 
       span {
         font-size: 18px;
         font-weight: 700;
-        color: var(--text-primary);
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        letter-spacing: -0.01em;
       }
     }
   }
@@ -46,7 +52,7 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      background: var(--primary-light);
+      background: linear-gradient(135deg, var(--primary-light), var(--accent-sky-light));
       color: var(--primary);
       padding: 8px 14px;
       border-radius: 20px;
@@ -54,10 +60,9 @@
       font-weight: 600;
       margin-bottom: 16px;
       width: fit-content;
+      border: 1px solid rgba(124, 92, 191, 0.15);
 
-      i {
-        font-size: 14px;
-      }
+      i { font-size: 14px; }
     }
 
     .intro-text {
@@ -80,11 +85,9 @@
       padding: 8px 4px;
       margin-bottom: 12px;
 
-      .user-avatar {
-        i {
-          font-size: 28px;
-          color: var(--primary);
-        }
+      .user-avatar i {
+        font-size: 28px;
+        color: var(--primary);
       }
 
       .user-name {
@@ -110,41 +113,41 @@
         border-radius: var(--radius-sm);
         color: var(--text-secondary);
         font-size: 14px;
-        font-family: inherit;
+        font-family: var(--font-family);
         cursor: pointer;
         transition: var(--transition);
 
         &:hover {
-          background: var(--bg);
-          color: var(--text-primary);
-          border-color: var(--primary);
+          background: var(--accent-sky-light);
+          color: var(--accent-sky);
+          border-color: var(--accent-sky);
         }
 
-        i {
-          font-size: 16px;
-        }
+        i { font-size: 16px; }
       }
 
       .admin-btn {
         display: flex;
         align-items: center;
         justify-content: center;
+        gap: 6px;
         padding: 10px 14px;
-        background: rgba(240, 217, 181, 0.15);
-        border: 1px solid rgba(240, 217, 181, 0.5);
+        background: var(--primary-gradient);
+        border: none;
         border-radius: var(--radius-sm);
-        color: #f0d9b5;
-        font-size: 16px;
+        color: white;
+        font-size: 14px;
         cursor: pointer;
         transition: var(--transition);
         font-weight: 600;
+        box-shadow: var(--shadow);
 
         &:hover {
-          background: rgba(240, 217, 181, 0.25);
-          border-color: rgba(240, 217, 181, 0.7);
-          color: #fff;
-          box-shadow: 0 0 12px rgba(240, 217, 181, 0.2);
+          box-shadow: var(--shadow-vibrant);
+          transform: translateY(-1px);
         }
+
+        i { font-size: 15px; }
       }
 
       .logout-btn {
@@ -161,38 +164,37 @@
         transition: var(--transition);
 
         &:hover {
-          background: #fef2f2;
-          color: #dc2626;
-          border-color: #fecaca;
+          background: #fdf0f0;
+          color: #b84a4a;
+          border-color: #f5d0d0;
         }
       }
     }
   }
 }
 
-/* Main Area */
+/* ── Main Area ── */
 .main-area {
   flex: 1;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  background: var(--bg);
 }
 
-/* Settings Overlay */
+/* ── Settings Overlay ── */
 .settings-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(58, 48, 69, 0.3);
   z-index: 99;
   animation: fadeIn 0.2s ease;
 }
 
-/* Responsive */
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
+  .sidebar { display: none; }
 }

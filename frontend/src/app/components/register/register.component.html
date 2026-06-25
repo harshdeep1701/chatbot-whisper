@@ -1,18 +1,19 @@
 <div class="auth-container">
-  <div class="auth-card">
+  <div class="deco-circle"></div>
+  <div class="auth-card mat-card-elevated">
     <div class="auth-header">
       <div class="logo">
-        <i class="fas fa-robot"></i>
+        <img src="assets/chatbot-logo.png" alt="Cosmo-Chat" />
       </div>
-      <h1>ChatBot Whisper</h1>
-      <p class="subtitle">Create a new account</p>
+      <h1>Cosmo-Chat</h1>
+      <p class="subtitle">Create a new account to get started.</p>
     </div>
 
     <form (ngSubmit)="register()" class="auth-form">
       <div class="form-group">
         <label for="username">Username</label>
         <div class="input-wrapper">
-          <i class="fas fa-user"></i>
+          <i class="fas fa-user input-icon"></i>
           <input
             id="username"
             type="text"
@@ -28,7 +29,7 @@
       <div class="form-group">
         <label for="email">Email</label>
         <div class="input-wrapper">
-          <i class="fas fa-envelope"></i>
+          <i class="fas fa-envelope input-icon"></i>
           <input
             id="email"
             type="email"
@@ -44,7 +45,7 @@
       <div class="form-group">
         <label for="password">Password</label>
         <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
+          <i class="fas fa-lock input-icon"></i>
           <input
             id="password"
             type="password"
@@ -60,7 +61,7 @@
       <div class="form-group">
         <label for="confirmPassword">Confirm Password</label>
         <div class="input-wrapper">
-          <i class="fas fa-lock"></i>
+          <i class="fas fa-lock input-icon"></i>
           <input
             id="confirmPassword"
             type="password"
@@ -79,7 +80,7 @@
       </div>
 
       <button type="submit" class="auth-btn" [disabled]="isLoading">
-        <i class="fas" [class.fa-spinner]="isLoading" [class.fa-user-plus]="!isLoading" [class.spinning]="isLoading"></i>
+        <i class="fas" [class.fa-spinner]="isLoading" [class.fa-sparkles]="!isLoading" [class.spinning]="isLoading"></i>
         {{ isLoading ? 'Creating account...' : 'Create Account' }}
       </button>
     </form>

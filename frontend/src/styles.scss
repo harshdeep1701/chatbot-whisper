@@ -1,4 +1,4 @@
-/* Global Styles */
+/* ── Global Styles ── */
 * {
   margin: 0;
   padding: 0;
@@ -6,31 +6,63 @@
 }
 
 :root {
-  --primary: #4f46e5;
-  --primary-hover: #4338ca;
-  --primary-light: #eef2ff;
-  --secondary: #10b981;
-  --bg: #f8fafc;
+  /* ── Vibrant Material Design palette ── */
+
+  /* Core primaries — rich, saturated */
+  --primary: #7c5cbf;
+  --primary-hover: #6848ad;
+  --primary-light: #ede6f8;
+  --primary-gradient: linear-gradient(135deg, #7c5cbf, #9b7fd4);
+
+  /* Secondary — vibrant teal-green */
+  --secondary: #4db68e;
+  --secondary-hover: #3da07a;
+  --secondary-light: #daf1e8;
+
+  /* Accent colors — bold pops */
+  --accent-coral: #f06a5a;
+  --accent-coral-light: #fde4e0;
+  --accent-sky: #4db8d6;
+  --accent-sky-light: #dceef8;
+  --accent-gold: #e8b84a;
+  --accent-gold-light: #fcf0d0;
+  --accent-rose: #e86a8a;
+  --accent-rose-light: #fce4ea;
+
+  /* Surfaces */
+  --bg: #f7f4f0;
   --bg-card: #ffffff;
-  --bg-user-msg: #4f46e5;
-  --bg-bot-msg: #f1f5f9;
-  --text-primary: #1e293b;
-  --text-secondary: #64748b;
-  --text-light: #94a3b8;
-  --border: #e2e8f0;
-  --shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.08);
+  --bg-user-msg: linear-gradient(135deg, #7c5cbf, #9b7fd4);
+  --bg-bot-msg: #f0ece6;
+
+  /* Text */
+  --text-primary: #3a3045;
+  --text-secondary: #7a6f8a;
+  --text-light: #a99faf;
+
+  /* Borders & Shadows */
+  --border: #e8e2dc;
+  --shadow: 0 1px 3px rgba(58, 48, 69, 0.08);
+  --shadow-md: 0 4px 12px rgba(58, 48, 69, 0.10);
+  --shadow-lg: 0 8px 28px rgba(58, 48, 69, 0.14);
+  --shadow-vibrant: 0 4px 16px rgba(124, 92, 191, 0.25);
+
+  /* Shape & Motion */
   --radius: 12px;
   --radius-sm: 8px;
+  --radius-xs: 4px;
   --transition: all 0.2s ease;
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-family);
   background: var(--bg);
   color: var(--text-primary);
   height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 app-root {
@@ -39,40 +71,185 @@ app-root {
 }
 
 /* Scrollbar styling */
-::-webkit-scrollbar {
-  width: 6px;
-}
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--text-light);
-  border-radius: 3px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--text-secondary);
-}
-
-/* Animations */
+/* ── Animations ── */
 @keyframes fadeIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes pulse {
   0%, 100% { opacity: 0.4; }
   50% { opacity: 1; }
 }
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(20px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes ripple {
   0% { transform: scale(0.8); opacity: 1; }
   100% { transform: scale(2); opacity: 0; }
+}
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ── Material Design shared button styles ── */
+.mat-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: var(--transition);
+  text-decoration: none;
+  letter-spacing: 0.01em;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+.mat-btn-primary {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: var(--shadow);
+
+  &:hover:not(:disabled) {
+    box-shadow: var(--shadow-vibrant);
+  }
+}
+
+.mat-btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+
+  &:hover:not(:disabled) {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: var(--shadow);
+  }
+}
+
+.mat-btn-coral {
+  background: var(--accent-coral);
+  color: white;
+  box-shadow: var(--shadow);
+
+  &:hover:not(:disabled) {
+    background: #e05a4a;
+    box-shadow: 0 4px 16px rgba(240, 106, 90, 0.3);
+  }
+}
+
+.mat-btn-sky {
+  background: var(--accent-sky);
+  color: white;
+  box-shadow: var(--shadow);
+
+  &:hover:not(:disabled) {
+    background: #3da8c6;
+    box-shadow: 0 4px 16px rgba(77, 184, 214, 0.3);
+  }
+}
+
+.mat-btn-gold {
+  background: var(--accent-gold);
+  color: white;
+  box-shadow: var(--shadow);
+
+  &:hover:not(:disabled) {
+    background: #d8a83a;
+    box-shadow: 0 4px 16px rgba(232, 184, 74, 0.3);
+  }
+}
+
+.mat-btn-danger {
+  background: var(--accent-coral-light);
+  color: #c0392b;
+
+  &:hover:not(:disabled) {
+    background: #f8d0c8;
+    box-shadow: var(--shadow);
+  }
+}
+
+/* ── Material Design card ── */
+.mat-card {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+}
+
+.mat-card-elevated {
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+}
+
+/* ── Material Design badge ── */
+.mat-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.mat-badge-primary {
+  background: var(--primary-light);
+  color: var(--primary);
+}
+
+.mat-badge-secondary {
+  background: var(--secondary-light);
+  color: #3a8a6a;
+}
+
+.mat-badge-coral {
+  background: var(--accent-coral-light);
+  color: #d05a4a;
+}
+
+.mat-badge-sky {
+  background: var(--accent-sky-light);
+  color: #3a98b6;
+}
+
+.mat-badge-gold {
+  background: var(--accent-gold-light);
+  color: #c8983a;
+}
+
+.mat-badge-rose {
+  background: var(--accent-rose-light);
+  color: #c85a7a;
 }

@@ -5,14 +5,14 @@
       <div class="welcome-icon">
         <i class="fas fa-comment-dots"></i>
       </div>
-      <h2>ChatBot Whisper</h2>
+      <h2>Cosmo-Chat</h2>
       <p>Ask me anything! I support both text and voice input.</p>
     </div>
 
     <div class="message-wrapper" *ngFor="let msg of messages" [class.user]="msg.role === 'user'" [class.system]="msg.role === 'system'">
       <div class="message" [class.user-message]="msg.role === 'user'" [class.bot-message]="msg.role !== 'user'">
         <div class="avatar" *ngIf="msg.role !== 'user'">
-          <i class="fas fa-robot"></i>
+          <img src="assets/voice-chatbot-favicon.svg" alt="AI" class="bot-avatar-img" />
         </div>
         <div class="avatar user-avatar" *ngIf="msg.role === 'user'">
           <i class="fas fa-user"></i>
@@ -28,7 +28,7 @@
     <div class="message-wrapper" *ngIf="isLoading">
       <div class="message bot-message">
         <div class="avatar">
-          <i class="fas fa-robot"></i>
+          <img src="assets/voice-chatbot-favicon.svg" alt="AI" class="bot-avatar-img" />
         </div>
         <div class="bubble typing">
           <span class="dot"></span>
@@ -41,11 +41,15 @@
 
   <!-- Input Area -->
   <div class="input-area">
-    <div class="input-wrapper">
+    <div class="input-wrapper" [class.processing]="isTranscribing">
+      <div class="processing-flash" *ngIf="isTranscribing">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <span>Processing voice input...</span>
+      </div>
       <textarea
         [(ngModel)]="userInput"
         (keydown.enter)="$event.preventDefault(); sendMessage()"
-        placeholder="Type your message..."
+        [placeholder]="isListening ? 'Listening...' : (isTranscribing ? 'Transcribing...' : 'Type your message...')"
         rows="1"
         class="message-input"
         [disabled]="isLoading"
@@ -82,13 +86,12 @@
         <!-- Voice Input -->
         <button
           class="action-btn mic-btn"
-          [class.recording]="isMicActive()"
-          (mousedown)="startVoiceInput()"
-          (mouseup)="stopVoiceInput()"
-          (mouseleave)="stopVoiceInput()"
-          title="Hold to record voice"
+          [class.recording]="isListening || isTranscribing || audioRecorderService.getIsRecording()"
+          [class.processing]="isTranscribing"
+          (click)="toggleVoiceInput()"
+          [title]="audioRecorderService.getIsRecording() ? 'Stop recording' : (isListening ? 'Stop listening' : (isTranscribing ? 'Transcribing...' : 'Click to record voice'))"
         >
-          <i class="fas fa-microphone"></i>
+          <i class="fas" [class.fa-microphone]="!isTranscribing && !audioRecorderService.getIsRecording()" [class.fa-circle]="audioRecorderService.getIsRecording()" [class.fa-spinner]="isTranscribing" [class.fa-spin]="isTranscribing"></i>
         </button>
 
         <!-- Send -->

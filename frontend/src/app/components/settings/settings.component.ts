@@ -1,6 +1,8 @@
 import { Component, EventEmitter, Output } from '@angular/core';
 import { environment } from '../../../environments/environment';
 
+const STORAGE_KEY = 'cosmo-chat-settings';
+
 @Component({
   selector: 'app-settings',
   templateUrl: './settings.component.html',
@@ -25,7 +27,42 @@ export class SettingsComponent {
   maxTokens = 2048;
 
   ngOnInit(): void {
+    this.loadSettings();
     this.checkBackendHealth();
+  }
+
+  /** Load persisted settings from localStorage */
+  private loadSettings(): void {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const settings = JSON.parse(saved);
+        if (settings.sttProvider) this.sttProvider = settings.sttProvider;
+        if (settings.ttsProvider) this.ttsProvider = settings.ttsProvider;
+        if (settings.voiceName) this.voiceName = settings.voiceName;
+        if (settings.autoSpeak !== undefined) this.autoSpeak = settings.autoSpeak;
+      }
+    } catch { /* ignore corrupt data */ }
+  }
+
+  /** Persist settings to localStorage whenever a value changes */
+  onSttChange(): void {
+    this.saveSettings();
+  }
+
+  onTtsChange(): void {
+    this.saveSettings();
+  }
+
+  private saveSettings(): void {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({
+        sttProvider: this.sttProvider,
+        ttsProvider: this.ttsProvider,
+        voiceName: this.voiceName,
+        autoSpeak: this.autoSpeak
+      }));
+    } catch { /* storage full — ignore */ }
   }
 
   private checkBackendHealth(): void {
