@@ -7,6 +7,7 @@ import com.chatbot.service.AuditService;
 import com.chatbot.service.DeepSeekService;
 import com.chatbot.service.RateLimitExceededException;
 import com.chatbot.service.TokenQuotaService;
+import com.chatbot.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.slf4j.Logger;
@@ -15,6 +16,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/chat")
@@ -25,13 +28,16 @@ public class ChatController {
     private final DeepSeekService deepSeekService;
     private final AuditService auditService;
     private final TokenQuotaService tokenQuotaService;
+    private final UserService userService;
 
     public ChatController(DeepSeekService deepSeekService,
                           AuditService auditService,
-                          TokenQuotaService tokenQuotaService) {
+                          TokenQuotaService tokenQuotaService,
+                          UserService userService) {
         this.deepSeekService = deepSeekService;
         this.auditService = auditService;
         this.tokenQuotaService = tokenQuotaService;
+        this.userService = userService;
     }
 
     @PostMapping
@@ -116,6 +122,32 @@ public class ChatController {
             );
             return ResponseEntity.internalServerError()
                     .body(ChatResponse.error("Failed to process chat: " + errorMsg));
+        }
+    }
+
+    /**
+     * Returns the authenticated user's own daily token quota.
+     * Accessible to any authenticated user (no ADMIN role required).
+     * GET /api/chat/quota
+     */
+    @GetMapping("/quota")
+    public ResponseEntity<Map<String, Object>> getMyQuota(Authentication auth) {
+        Long userId = auth != null ? (Long) auth.getCredentials() : 0L;
+        try {
+            String tier = userService.getUserTier(userId);
+            int remaining = tokenQuotaService.getRemainingTokens(userId);
+            int totalUsed = tokenQuotaService.getTotalTokensUsed(userId);
+            return ResponseEntity.ok(Map.of(
+                    "userId", userId,
+                    "tier", tier,
+                    "remainingTokens", remaining,
+                    "totalTokensUsed", totalUsed
+            ));
+        } catch (Exception e) {
+            log.error("Failed to fetch quota for userId={}: {}", userId, e.getMessage());
+            return ResponseEntity.badRequest().body(Map.of(
+                    "success", false, "error", e.getMessage()
+            ));
         }
     }
 

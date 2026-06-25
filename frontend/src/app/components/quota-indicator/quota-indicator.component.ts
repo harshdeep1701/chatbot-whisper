@@ -27,7 +27,7 @@ export class QuotaIndicatorComponent implements OnInit, OnDestroy {
     // Refresh quota every 30 seconds
     this.sub.add(
       interval(30_000)
-        .pipe(switchMap(() => this.quotaService.getQuota(this.userId)))
+        .pipe(switchMap(() => this.quotaService.getQuota()))
         .subscribe({
           next: (data) => this.updateQuota(data),
           error: () => { /* silently ignore poll errors */ }
@@ -79,7 +79,7 @@ export class QuotaIndicatorComponent implements OnInit, OnDestroy {
   private fetchQuota(): void {
     this.isLoading = true;
     this.error = false;
-    this.quotaService.getQuota(this.userId).subscribe({
+    this.quotaService.getQuota().subscribe({
       next: (data) => {
         this.updateQuota(data);
         this.isLoading = false;

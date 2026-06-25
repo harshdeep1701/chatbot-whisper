@@ -224,7 +224,7 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private fetchQuota(): void {
-    this.quotaService.getQuota(this.userId).subscribe({
+    this.quotaService.getQuota().subscribe({
       next: (data) => {
         this.remainingTokens = data.remainingTokens;
         this.limitExceeded = this.remainingTokens <= 0;

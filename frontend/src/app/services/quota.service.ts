@@ -7,6 +7,7 @@ export interface QuotaInfo {
   userId: number;
   tier: string;
   remainingTokens: number;
+  totalTokensUsed?: number;
 }
 
 @Injectable({
@@ -17,7 +18,11 @@ export class QuotaService {
 
   constructor(private http: HttpClient) {}
 
-  getQuota(userId: number): Observable<QuotaInfo> {
-    return this.http.get<QuotaInfo>(`${this.apiUrl}/admin/quota/${userId}`);
+  /**
+   * Fetch the authenticated user's own quota.
+   * User ID is extracted from the JWT on the backend — no parameter needed.
+   */
+  getQuota(): Observable<QuotaInfo> {
+    return this.http.get<QuotaInfo>(`${this.apiUrl}/chat/quota`);
   }
 }
