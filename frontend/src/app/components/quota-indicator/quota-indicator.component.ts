@@ -2,7 +2,7 @@ import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { QuotaService, QuotaInfo } from '../../services/quota.service';
 import { interval, Subscription, switchMap } from 'rxjs';
 
-export const FREE_DAILY_LIMIT = 100_000;
+export const FREE_DAILY_LIMIT = 10_000;
 export const PREMIUM_DAILY_LIMIT = 1_000_000;
 
 @Component({

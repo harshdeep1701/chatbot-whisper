@@ -38,7 +38,7 @@ jwt:
 # Rate Limiting (per-user daily token quotas)
 ratelimit:
   free:
-    daily-tokens: 100000
+    daily-tokens: 10000
   premium:
     daily-tokens: 1000000
 

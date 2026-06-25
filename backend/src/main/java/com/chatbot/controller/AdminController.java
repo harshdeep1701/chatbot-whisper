@@ -46,7 +46,7 @@ public class AdminController {
                 entry.put("role", user.getRole());
                 entry.put("tier", user.isPremium() ? "premium" : "free");
                 entry.put("totalTokensUsed", tokenQuotaService.getTotalTokensUsed(user.getId()));
-                entry.put("remainingToday", tokenQuotaService.getRemainingTokens(user.getId()));
+                entry.put("remainingTokens", tokenQuotaService.getRemainingTokens(user.getId()));
                 entry.put("premiumSince", user.getPremiumUpgradedAt());
                 entry.put("createdAt", user.getCreatedAt());
                 result.add(entry);
@@ -163,7 +163,7 @@ public class AdminController {
             return ResponseEntity.ok(Map.of(
                     "userId", userId,
                     "tier", tier,
-                    "remainingToday", remaining,
+                    "remainingTokens", remaining,
                     "totalTokensUsed", totalUsed
             ));
         } catch (Exception e) {

@@ -3,6 +3,7 @@ import { ChatService, ChatMessage } from '../../services/chat.service';
 import { SpeechService } from '../../services/speech.service';
 import { AudioRecorderService } from '../../services/audio-recorder.service';
 import { AuthService } from '../../services/auth.service';
+import { QuotaService } from '../../services/quota.service';
 import { Subscription, finalize } from 'rxjs';
 
 @Component({
@@ -26,10 +27,14 @@ export class ChatComponent implements OnInit, OnDestroy {
 
   userId: number = 0;
 
+  remainingTokens = -1;  // -1 = not yet loaded
+  limitExceeded = false;
+
   constructor(
     public chatService: ChatService,
     public speechService: SpeechService,
     public audioRecorderService: AudioRecorderService,
+    private quotaService: QuotaService,
     private cdr: ChangeDetectorRef,
     private authService: AuthService
   ) {}
@@ -39,6 +44,11 @@ export class ChatComponent implements OnInit, OnDestroy {
     const user = this.authService.getCurrentUser();
     if (user) {
       this.userId = user.userId;
+    }
+
+    // Fetch initial quota
+    if (this.userId > 0) {
+      this.fetchQuota();
     }
 
     // Add welcome message
@@ -79,6 +89,17 @@ export class ChatComponent implements OnInit, OnDestroy {
     const text = this.userInput.trim();
     if (!text || this.isLoading) return;
 
+    // Block API call if daily quota is exhausted
+    if (this.remainingTokens === 0) {
+      this.limitExceeded = true;
+      this.addSystemMessage(
+        '⚠️ Daily token limit reached. Your quota resets at midnight UTC. ' +
+        'Upgrade to premium for 1,000,000 tokens/day.'
+      );
+      this.userInput = '';
+      return;
+    }
+
     this.messages.push({ role: 'user', content: text, timestamp: new Date() });
     this.userInput = '';
     this.isLoading = true;
@@ -92,6 +113,8 @@ export class ChatComponent implements OnInit, OnDestroy {
           if (response.success) {
             this.conversationId = response.conversationId;
             this.messages.push({ role: 'assistant', content: response.reply, timestamp: new Date() });
+            // Refresh quota after each successful message
+            this.fetchQuota();
             // Force change detection so the message renders before TTS starts
             this.cdr.detectChanges();
             this.scrollToBottom();
@@ -196,8 +219,18 @@ export class ChatComponent implements OnInit, OnDestroy {
   }
 
   private addSystemMessage(content: string): void {
-    this.messages.push({ role: 'assistant', content, timestamp: new Date() });
+    this.messages.push({ role: 'system', content, timestamp: new Date() });
     this.scrollToBottom();
+  }
+
+  private fetchQuota(): void {
+    this.quotaService.getQuota(this.userId).subscribe({
+      next: (data) => {
+        this.remainingTokens = data.remainingTokens;
+        this.limitExceeded = this.remainingTokens <= 0;
+      },
+      error: () => { /* silently ignore */ }
+    });
   }
 
   private scrollToBottom(): void {

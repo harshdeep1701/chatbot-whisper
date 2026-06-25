@@ -10,7 +10,7 @@ export interface AdminUser {
   role: string;
   tier: string;
   totalTokensUsed: number;
-  remainingToday: number;
+  remainingTokens: number;
   premiumSince: string | null;
   createdAt: string;
 }
