@@ -11,6 +11,7 @@ import { QuotaIndicatorComponent } from './components/quota-indicator/quota-indi
 import { SettingsComponent } from './components/settings/settings.component';
 import { LoginComponent } from './components/login/login.component';
 import { RegisterComponent } from './components/register/register.component';
+import { AdminComponent } from './components/admin/admin.component';
 import { AuthInterceptor } from './interceptors/auth.interceptor';
 import { MarkdownPipe } from './pipes/markdown.pipe';
 
@@ -23,6 +24,7 @@ import { MarkdownPipe } from './pipes/markdown.pipe';
     SettingsComponent,
     LoginComponent,
     RegisterComponent,
+    AdminComponent,
     MarkdownPipe
   ],
   imports: [

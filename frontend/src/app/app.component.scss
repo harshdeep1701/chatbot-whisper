@@ -125,6 +125,25 @@
         }
       }
 
+      .admin-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 14px;
+        background: none;
+        border: 1px solid rgba(240, 217, 181, 0.3);
+        border-radius: var(--radius-sm);
+        color: #f0d9b5;
+        font-size: 16px;
+        cursor: pointer;
+        transition: var(--transition);
+
+        &:hover {
+          background: rgba(240, 217, 181, 0.1);
+          border-color: rgba(240, 217, 181, 0.5);
+        }
+      }
+
       .logout-btn {
         display: flex;
         align-items: center;

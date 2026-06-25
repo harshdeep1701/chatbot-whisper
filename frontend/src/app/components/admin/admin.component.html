@@ -1,0 +1,87 @@
+<div class="admin-container">
+  <div class="admin-header">
+    <button class="back-btn" routerLink="/chat">
+      <i class="fas fa-arrow-left"></i> Back to Chat
+    </button>
+    <h1>Admin Panel</h1>
+    <button class="refresh-btn" (click)="loadUsers()">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
+
+  <div class="action-message" *ngIf="actionMessage" (click)="actionMessage = ''">
+    {{ actionMessage }}
+  </div>
+
+  <div class="loading" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading users...
+  </div>
+
+  <div class="error" *ngIf="error">
+    <p>{{ error }}</p>
+  </div>
+
+  <div class="users-table-container" *ngIf="!isLoading && !error">
+    <table class="users-table">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Tier</th>
+          <th>Total Tokens</th>
+          <th>Today Left</th>
+          <th>Joined</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td class="username-cell">{{ user.username }}</td>
+          <td class="email-cell">{{ user.email }}</td>
+          <td>
+            <span class="badge" [class.badge-admin]="user.role === 'ADMIN'" [class.badge-user]="user.role === 'USER'">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [class.badge-premium]="user.tier === 'premium'" [class.badge-free]="user.tier === 'free'">
+              {{ user.tier }}
+            </span>
+          </td>
+          <td>{{ user.totalTokensUsed | number }}</td>
+          <td>{{ user.remainingToday | number }}</td>
+          <td>{{ user.createdAt | date:'MMM d, y' }}</td>
+          <td class="actions-cell">
+            <button
+              *ngIf="user.tier === 'free'"
+              class="action-btn upgrade-btn"
+              (click)="upgradeUser(user)"
+              title="Upgrade to Premium"
+            >
+              ⬆ Premium
+            </button>
+            <button
+              *ngIf="user.tier === 'premium'"
+              class="action-btn downgrade-btn"
+              (click)="downgradeUser(user)"
+              title="Downgrade to Free"
+            >
+              ⬇ Free
+            </button>
+            <button
+              class="action-btn role-btn"
+              [class.make-admin]="user.role !== 'ADMIN'"
+              [class.remove-admin]="user.role === 'ADMIN'"
+              (click)="toggleAdmin(user)"
+            >
+              {{ user.role === 'ADMIN' ? '👑 Remove Admin' : '👤 Make Admin' }}
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

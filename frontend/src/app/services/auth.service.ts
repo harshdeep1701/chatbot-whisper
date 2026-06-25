@@ -16,6 +16,7 @@ export interface UserInfo {
   username: string;
   userId: number;
   token: string;
+  role: string;
 }
 
 @Injectable({
@@ -69,19 +70,35 @@ export class AuthService {
     return this.currentUserSubject.value !== null;
   }
 
+  isAdmin(): boolean {
+    const user = this.currentUserSubject.value;
+    return user?.role === 'ADMIN';
+  }
+
   getCurrentUser(): UserInfo | null {
     return this.currentUserSubject.value;
   }
 
   private saveUser(response: AuthResponse): void {
+    const role = this.extractRoleFromToken(response.token);
     const user: UserInfo = {
       username: response.username,
       userId: response.userId,
-      token: response.token
+      token: response.token,
+      role: role
     };
     localStorage.setItem(this.TOKEN_KEY, response.token);
     localStorage.setItem(this.USER_KEY, JSON.stringify(user));
     this.currentUserSubject.next(user);
+  }
+
+  private extractRoleFromToken(token: string): string {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.role || 'USER';
+    } catch {
+      return 'USER';
+    }
   }
 
   private loadUserFromStorage(): void {

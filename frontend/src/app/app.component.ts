@@ -11,12 +11,14 @@ export class AppComponent implements OnInit {
   title = 'ChatBot Whisper';
   showSettings = false;
   currentUser: UserInfo | null = null;
+  isAdmin = false;
 
   constructor(private authService: AuthService, private router: Router) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe(user => {
       this.currentUser = user;
+      this.isAdmin = this.authService.isAdmin();
     });
   }
 

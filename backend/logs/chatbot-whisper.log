@@ -1,1 +1,18 @@
 2026-06-26 00:38:12.418 [HikariPool-1 housekeeper] WARN  com.zaxxer.hikari.pool.HikariPool - HikariPool-1 - Thread starvation or clock leap detected (housekeeper delta=35m28s319ms157µs300ns).
+2026-06-26 00:54:16.998 [http-nio-8080-exec-9] DEBUG c.c.config.JwtAuthenticationFilter - Authenticated user=harshdeep via JWT
+2026-06-26 00:54:17.008 [http-nio-8080-exec-9] DEBUG com.chatbot.aspect.LoggingAspect - >>> ENTER AdminController.getUserQuota(1)
+2026-06-26 00:54:17.008 [http-nio-8080-exec-9] DEBUG com.chatbot.aspect.LoggingAspect - >>> ENTER UserService.getUserTier(1)
+2026-06-26 00:54:17.026 [http-nio-8080-exec-9] DEBUG com.chatbot.aspect.LoggingAspect - <<< EXIT  UserService.getUserTier  ─ took 18 ms
+2026-06-26 00:54:17.027 [http-nio-8080-exec-9] DEBUG com.chatbot.aspect.LoggingAspect - >>> ENTER TokenQuotaService.getRemainingTokens(1)
+2026-06-26 00:54:17.035 [http-nio-8080-exec-9] DEBUG com.chatbot.aspect.LoggingAspect - <<< EXIT  TokenQuotaService.getRemainingTokens  ─ took 8 ms
+2026-06-26 00:54:17.038 [http-nio-8080-exec-9] DEBUG com.chatbot.aspect.LoggingAspect - <<< EXIT  AdminController.getUserQuota  ─ took 30 ms
+2026-06-26 00:54:17.238 [http-nio-8080-exec-1] DEBUG c.c.config.JwtAuthenticationFilter - Authenticated user=harshdeep via JWT
+2026-06-26 00:54:17.239 [http-nio-8080-exec-1] DEBUG com.chatbot.aspect.LoggingAspect - >>> ENTER AdminController.getUserQuota(1)
+2026-06-26 00:54:17.239 [http-nio-8080-exec-1] DEBUG com.chatbot.aspect.LoggingAspect - >>> ENTER UserService.getUserTier(1)
+2026-06-26 00:54:17.240 [http-nio-8080-exec-1] DEBUG com.chatbot.aspect.LoggingAspect - <<< EXIT  UserService.getUserTier  ─ took 1 ms
+2026-06-26 00:54:17.240 [http-nio-8080-exec-1] DEBUG com.chatbot.aspect.LoggingAspect - >>> ENTER TokenQuotaService.getRemainingTokens(1)
+2026-06-26 00:54:17.242 [http-nio-8080-exec-1] DEBUG com.chatbot.aspect.LoggingAspect - <<< EXIT  TokenQuotaService.getRemainingTokens  ─ took 1 ms
+2026-06-26 00:54:17.242 [http-nio-8080-exec-1] DEBUG com.chatbot.aspect.LoggingAspect - <<< EXIT  AdminController.getUserQuota  ─ took 3 ms
+2026-06-26 00:58:31.325 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2026-06-26 00:58:31.331 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2026-06-26 00:58:31.332 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
