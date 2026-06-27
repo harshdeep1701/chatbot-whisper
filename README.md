@@ -1,203 +1,115 @@
-# ChatBot Whisper
+# Cosmo-Chat 🤖🎤
 
-A voice-enabled AI chatbot with **Speech-to-Text (STT)** and **Text-to-Speech (TTS)** capabilities.
+A voice-enabled AI chatbot with **Speech-to-Text (STT)** and **Text-to-Speech (TTS)** capabilities. Built with **Angular 18** (frontend) and **Spring Boot 3** (backend).
 
-- **LLM**: [DeepSeek](https://deepseek.com/) for intelligent conversations
-- **STT**: [OpenAI Whisper](https://openai.com/research/whisper) for speech recognition (or browser native)
-- **TTS**: OpenAI TTS or browser-native speech synthesis
-- **Frontend**: Angular 18
-- **Backend**: Java 17 + Spring Boot 3.2
+## ✨ Features
 
-## Architecture
-
-```
-┌─────────────────┐     ┌──────────────────┐     ┌────────────────┐
-│                 │     │                  │     │                │
-│   Angular App   │────▶│  Spring Boot API │────▶│   DeepSeek API │
-│   (Frontend)    │     │  (Backend:8080)  │     │   (LLM Chat)   │
-│                 │◀────│                  │◀────│                │
-└─────────────────┘     └──────────────────┘     └────────────────┘
-         │                       │
-         │                       │
-         ▼                       ▼
-┌─────────────────┐     ┌──────────────────┐
-│                 │     │                  │
-│  Browser STT/TTS│     │  OpenAI Whisper  │
-│  (Native APIs)  │     │  & TTS (Server)  │
-│                 │     │                  │
-└─────────────────┘     └──────────────────┘
-```
-
-## Features
-
-- 💬 **Chat with DeepSeek** — Intelligent responses using DeepSeek's chat model
-- 🎤 **Voice Input** — Hold-to-talk with speech recognition (browser native or Whisper)
-- 🔊 **Text-to-Speech** — Listen to responses (browser native or OpenAI TTS)
+- 💬 **AI Chat** — Powered by DeepSeek, OpenAI, or Google Gemini
+- 🎤 **Voice Input** — Record via browser microphone (browser-native STT or OpenAI Whisper)
+- 🔊 **Text-to-Speech** — Hear responses read aloud (browser-native or server-side TTS)
+- 🔐 **Authentication** — JWT-based login/register with User and Admin roles
+- 📊 **Token Quota** — Daily usage tracking with a visual ring chart
 - ⚙️ **Configurable** — Choose between browser-native or server-based speech processing
-- 🎨 **Modern UI** — Clean, responsive interface with dark-friendly design
+- 🎨 **Dark Purple Theme** — Cohesive dark UI across all screens
+- 📱 **Responsive** — Works on desktop and mobile with slide-out sidebar
 
-## Prerequisites
+## 🏗️ Tech Stack
 
-- **Node.js** 18+ and npm
-- **Java 17+** and Maven (for backend)
-- **Angular CLI** 18+ (`npm install -g @angular/cli`)
-- API Keys:
-  - [DeepSeek API Key](https://platform.deepseek.com/)
-  - [OpenAI API Key](https://platform.openai.com/) (for Whisper STT & TTS)
+| Layer | Technology |
+|---|---|
+| **Frontend** | Angular 18, SCSS, Marked |
+| **Backend** | Spring Boot 3.2.5 (Java 17) |
+| **Database** | H2 (file-based, no external DB) |
+| **AI Models** | DeepSeek, OpenAI, Google Gemini (via LangChain4j) |
+| **Auth** | JWT (jjwt 0.12.5) |
+| **Infrastructure** | Docker, Docker Compose, Nginx |
 
-## Setup & Running
+## 🚀 Quick Start (Development)
 
-### 1. Clone & Configure Backend
+### Backend
 
 ```bash
 cd backend
-```
-
-Copy the environment template and add your API keys:
-
-```bash
-cp .env.example .env
-# Edit .env and add your DEEPSEEK_API_KEY and OPENAI_API_KEY
-```
-
-**Option A:** Set environment variables directly:
-
-```bash
-# PowerShell
-$env:DEEPSEEK_API_KEY="your-deepseek-key"
-$env:OPENAI_API_KEY="your-openai-key"
-
-# OR set them in your system environment variables
-```
-
-**Option B:** Use IntelliJ / VS Code run configuration to set env vars.
-
-Build and run:
-
-```bash
-mvn clean package
+# Set your API keys as environment variables:
+#   DEEPSEEK_API_KEY, OPENAI_API_KEY, GEMINI_API_KEY
 mvn spring-boot:run
 ```
+The API starts at `http://localhost:8080`.
 
-The backend starts at `http://localhost:8080`.
-
-### 2. Run Frontend
+### Frontend
 
 ```bash
 cd frontend
 npm install
 ng serve
 ```
+The UI opens at `http://localhost:4200`.
 
-The frontend starts at `http://localhost:4200`.
+## 🐳 Docker Deployment
 
-### 3. Open the App
+See [DEPLOY.md](./DEPLOY.md) for full VPS deployment instructions.
 
-Navigate to **http://localhost:4200** and start chatting!
-
-## Usage
-
-### Text Chat
-- Type a message and press Enter or click the send button
-- The chatbot replies via DeepSeek API
-
-### Voice Input (Browser Native)
-- Hold the **microphone button** to start recording
-- Release to stop — speech is transcribed in real-time using the browser's native Speech Recognition API
-- Works offline (no server needed for recognition)
-
-### Voice Input (Whisper STT)
-- Open **Settings → Speech Recognition → Provider → OpenAI Whisper**
-- Hold the microphone button to record audio
-- Release — audio is sent to the backend, which transcribes it via OpenAI Whisper API
-
-### Text-to-Speech
-- By default, responses are spoken using the browser's native Speech Synthesis
-- Open **Settings → Text-to-Speech → Provider → OpenAI TTS** for server-side TTS
-- You can select from 6 different voices (Alloy, Echo, Fable, Onyx, Nova, Shimmer)
-
-### Settings
-Click the **Settings** button in the sidebar to:
-- Check backend connection status
-- Switch between browser-native and server-based STT/TTS
-- Enable auto-speak for responses
-- View model configuration
-
-## API Endpoints
-
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/chat` | Send a chat message to DeepSeek |
-| GET | `/api/chat/health` | Health check |
-| POST | `/api/speech/stt` | Transcribe audio (Whisper) |
-| POST | `/api/speech/tts` | Synthesize speech from text |
-
-### Chat Request
-
-```json
-{
-  "message": "Hello!",
-  "conversationId": "optional-existing-conversation-id",
-  "history": [
-    { "role": "user", "content": "Previous message" },
-    { "role": "assistant", "content": "Previous reply" }
-  ]
-}
+```bash
+docker compose up -d --build
 ```
 
-## Configuration
+## 🔧 Environment Variables
 
-### Backend (`application.yml`)
+| Variable | Description |
+|---|---|
+| `DEEPSEEK_API_KEY` | DeepSeek API key |
+| `OPENAI_API_KEY` | OpenAI API key (Whisper STT) |
+| `GEMINI_API_KEY` | Google Gemini API key |
+| `JWT_SECRET` | JWT signing secret (256-bit minimum) |
+| `DOMAIN_NAME` | Deployment domain (e.g. `harshdeep.tech`) |
 
-| Property | Default | Description |
-|----------|---------|-------------|
-| `deepseek.api.key` | — | DeepSeek API key (required) |
-| `deepseek.model` | `deepseek-chat` | DeepSeek model name |
-| `openai.api.key` | — | OpenAI API key (required for Whisper/TTS) |
-| `openai.whisper.model` | `whisper-1` | Whisper model |
-| `openai.tts.model` | `tts-1` | TTS model |
-| `openai.tts.voice` | `alloy` | TTS voice |
-
-### Frontend (`src/environments/environment.ts`)
-
-| Property | Default | Description |
-|----------|---------|-------------|
-| `apiUrl` | `http://localhost:8080/api` | Backend API URL |
-| `enableVoice` | `true` | Enable voice features |
-
-## Project Structure
+## 📁 Project Structure
 
 ```
 chatbot-whisper/
 ├── backend/
-│   ├── pom.xml
 │   └── src/main/java/com/chatbot/
-│       ├── ChatbotApplication.java
-│       ├── config/
-│       │   ├── AppConfig.java
-│       │   └── WebConfig.java
-│       ├── controller/
-│       │   ├── ChatController.java
-│       │   └── SpeechController.java
-│       ├── dto/
-│       │   ├── ChatRequest.java
-│       │   ├── ChatResponse.java
-│       │   └── SttResponse.java
-│       └── service/
-│           ├── DeepSeekService.java
-│           ├── TextToSpeechService.java
-│           └── WhisperService.java
+│       ├── config/          # JWT filter, Security, Web, CORS
+│       ├── controller/      # ChatController, SpeechController, AuthController
+│       ├── model/           # Entities (User, ChatMessage) & DTOs
+│       ├── repository/      # JPA repositories
+│       └── service/         # ChatService, SpeechService, QuotaService
 ├── frontend/
-│   ├── package.json
-│   ├── angular.json
 │   └── src/app/
-│       ├── app.component.ts
-│       ├── components/
-│       │   ├── chat/          # Main chat interface
-│       │   ├── voice-input/   # Voice recording button
-│       │   └── settings/      # Configuration panel
-│       └── services/
-│           ├── chat.service.ts
+│       ├── core/            # Auth service, guards, interceptors
+│       ├── features/        # Chat, Auth (login/register), Admin (lazy-loaded)
+│       └── shared/          # Speech service, audio recorder, quota ring, directives
+├── docker-compose.yml
+├── DEPLOY.md
+└── README.md
+```
+
+## 🔐 Authentication
+
+- **JWT-based** — Token returned on login/register, attached as `Authorization: Bearer` header
+- **Token expiry** — 24 hours (configurable via `jwt.expiration`)
+- **Roles** — `USER` (default) and `ADMIN` (first registered user)
+- **Guards** — `authGuard` protects chat routes; `adminGuard` protects admin panel
+- **On expiry** — Token checked on page load; expired tokens trigger automatic logout
+
+## 🔌 API Endpoints
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| POST | `/api/auth/login` | No | User login |
+| POST | `/api/auth/register` | No | User registration |
+| POST | `/api/chat` | Yes | Send chat message |
+| GET | `/api/chat/health` | No | Health check |
+| GET | `/api/chat/quota` | Yes | Token quota info |
+| POST | `/api/speech/stt` | Yes | Transcribe audio (Whisper) |
+| POST | `/api/speech/tts` | Yes | Synthesize speech |
+| GET | `/api/admin/users` | Admin | List all users |
+| GET | `/api/admin/quota` | Admin | All users' quota |
+
+## 📄 License
+
+MIT
+
 │           ├── speech.service.ts
 │           └── audio-recorder.service.ts
 └── README.md
