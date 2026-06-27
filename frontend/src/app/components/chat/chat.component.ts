@@ -6,6 +6,11 @@ import { AuthService } from '../../services/auth.service';
 import { QuotaService } from '../../services/quota.service';
 import { Subscription, finalize } from 'rxjs';
 
+interface VoiceSettings {
+  sttProvider?: 'browser' | 'whisper';
+  ttsProvider?: 'browser' | 'server';
+}
+
 @Component({
   selector: 'app-chat',
   templateUrl: './chat.component.html',
@@ -35,6 +40,9 @@ export class ChatComponent implements OnInit, OnDestroy {
   isListening = false;
   /** True while Whisper audio is being transcribed */
   isTranscribing = false;
+
+  /** Voice overlay visibility */
+  voiceOverlayVisible = false;
 
 
   constructor(
@@ -334,6 +342,27 @@ export class ChatComponent implements OnInit, OnDestroy {
       },
       error: () => { /* silently ignore */ }
     });
+  }
+
+  toggleVoiceOverlay(): void {
+    this.voiceOverlayVisible = !this.voiceOverlayVisible;
+  }
+
+  onVoiceOverlayClosed(): void {
+    this.voiceOverlayVisible = false;
+    this.fetchQuota();
+  }
+
+  onVoiceOverlayUserMessage(text: string): void {
+    this.messages.push({ role: 'user', content: text, timestamp: new Date() });
+    this.scrollToBottom();
+  }
+
+  onVoiceOverlayAssistantMessage(text: string): void {
+    this.messages.push({ role: 'assistant', content: text, timestamp: new Date() });
+    this.scrollToBottom();
+    // Update conversation ID from the last API call
+    this.conversationId = ''; // will be set on next overlay interaction
   }
 
   private scrollToBottom(): void {

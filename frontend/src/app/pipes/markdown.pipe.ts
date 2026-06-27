@@ -9,7 +9,7 @@ import { marked } from 'marked';
  *
  * Usage:  {{ msg.content | markdown }}
  */
-@Pipe({ name: 'markdown' })
+@Pipe({ name: 'markdown', standalone: true })
 export class MarkdownPipe implements PipeTransform {
 
   constructor(private sanitizer: DomSanitizer) {

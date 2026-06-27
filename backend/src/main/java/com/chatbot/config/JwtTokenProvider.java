@@ -1,10 +1,12 @@
 package com.chatbot.config;
 
-import io.jsonwebtoken.*;
+import com.chatbot.config.properties.JwtProperties;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
@@ -19,18 +21,16 @@ public class JwtTokenProvider {
     private final SecretKey secretKey;
     private final long expirationMs;
 
-    public JwtTokenProvider(
-            @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration:86400000}") long expirationMs) {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
-        this.expirationMs = expirationMs;
+    public JwtTokenProvider(JwtProperties jwtProperties) {
+        this.secretKey = Keys.hmacShaKeyFor(jwtProperties.secret().getBytes(StandardCharsets.UTF_8));
+        this.expirationMs = jwtProperties.expiration();
     }
 
     public String generateToken(String username, Long userId, String role) {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + expirationMs);
+        var now = new Date();
+        var expiry = new Date(now.getTime() + expirationMs);
 
-        String token = Jwts.builder()
+        var token = Jwts.builder()
                 .subject(username)
                 .claim("userId", userId)
                 .claim("role", role)
@@ -39,7 +39,7 @@ public class JwtTokenProvider {
                 .signWith(secretKey)
                 .compact();
 
-        log.debug("Generated JWT for user={}, role={}, expires={}", username, role, expiry);
+        log.debug("Generated JWT: user={}, role={}", username, role);
         return token;
     }
 

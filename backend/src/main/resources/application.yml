@@ -4,8 +4,8 @@ server:
 spring:
   servlet:
     multipart:
-      max-file-size: 25MB
-      max-request-size: 25MB
+      max-file-size: 3MB
+      max-request-size: 3MB
 
   # H2 Database (file-based)
   datasource:
@@ -55,21 +55,20 @@ google:
     log-responses: false
 
 deepseek:
-  api:
-    key: ${DEEPSEEK_API_KEY}
-    url: https://api.deepseek.com/v1/chat/completions
+  api-key: ${DEEPSEEK_API_KEY}
+  api-url: https://api.deepseek.com/v1/chat/completions
   model: deepseek-chat
+  max-tokens: 4096
+  temperature: 0.5
 
 openai:
   api:
     key: ${OPENAI_API_KEY}
   whisper:
-    api:
-      url: https://api.openai.com/v1/audio/transcriptions
+    api-url: https://api.openai.com/v1/audio/transcriptions
     model: whisper-1
   tts:
-    api:
-      url: https://api.openai.com/v1/audio/speech
+    api-url: https://api.openai.com/v1/audio/speech
     model: tts-1
     voice: alloy
 

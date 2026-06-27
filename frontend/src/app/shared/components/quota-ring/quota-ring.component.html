@@ -1,0 +1,53 @@
+<!-- Tooltip -->
+<div class="quota-tooltip" *ngIf="showTooltip">
+  <div class="tooltip-row">
+    <span class="tooltip-label">Used:</span>
+    <span class="tooltip-value">{{ formattedUsed }}</span>
+    <span class="tooltip-label">tokens</span>
+  </div>
+  <div class="tooltip-row">
+    <span class="tooltip-label">Remaining:</span>
+    <span class="tooltip-value">{{ formattedRemaining }}</span>
+    <span class="tooltip-label">tokens</span>
+  </div>
+</div>
+
+<!-- Ring -->
+<svg
+  class="quota-svg"
+  width="40"
+  height="40"
+  viewBox="0 0 40 40"
+>
+  <!-- Track circle -->
+  <circle
+    cx="20"
+    cy="20"
+    r="14"
+    fill="none"
+    stroke="#2a2040"
+    stroke-width="4"
+  />
+  <!-- Progress arc -->
+  <circle
+    cx="20"
+    cy="20"
+    r="14"
+    fill="none"
+    stroke-width="4"
+    stroke-linecap="round"
+    [attr.stroke]="arcColor"
+    [attr.stroke-dasharray]="circumference"
+    [attr.stroke-dashoffset]="dashOffset"
+    transform="rotate(-90 20 20)"
+    class="progress-arc"
+  />
+  <!-- Percentage text -->
+  <text
+    x="50%"
+    y="50%"
+    dominant-baseline="middle"
+    text-anchor="middle"
+    class="quota-text"
+  >{{ percentUsed }}%</text>
+</svg>

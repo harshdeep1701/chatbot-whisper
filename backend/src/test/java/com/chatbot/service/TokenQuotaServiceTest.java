@@ -1,6 +1,7 @@
 package com.chatbot.service;
 
-import com.chatbot.config.JwtTokenProvider;
+import com.chatbot.config.properties.RateLimitProperties;
+import com.chatbot.exception.RateLimitExceededException;
 import com.chatbot.model.TokenUsage;
 import com.chatbot.model.User;
 import com.chatbot.repository.TokenUsageRepository;
@@ -10,11 +11,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.test.util.ReflectionTestUtils;
 
 import java.time.LocalDate;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,12 +33,13 @@ class TokenQuotaServiceTest {
     private User freeUser;
     private User premiumUser;
 
+    private final RateLimitProperties rateLimitProperties = new RateLimitProperties(
+            new RateLimitProperties.Tier(10_000),
+            new RateLimitProperties.Tier(1_000_000));
+
     @BeforeEach
     void setUp() {
-        service = new TokenQuotaService(tokenUsageRepository, userRepository);
-        // Free tier: 10,000 tokens/day; Premium: 1,000,000 tokens/day
-        ReflectionTestUtils.setField(service, "freeDailyLimit", 10_000);
-        ReflectionTestUtils.setField(service, "premiumDailyLimit", 1_000_000);
+        service = new TokenQuotaService(tokenUsageRepository, userRepository, rateLimitProperties);
 
         freeUser = new User("freeuser", "free@test.com", "pass");
         freeUser.setId(1L);

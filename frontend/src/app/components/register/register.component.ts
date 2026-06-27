@@ -47,7 +47,7 @@ export class RegisterComponent {
       },
       error: (err) => {
         this.isLoading = false;
-        this.error = err.error?.error || 'Connection error. Is the server running?';
+        this.error = err.error?.detail || err.error?.error || 'Connection error. Is the server running?';
       }
     });
   }

@@ -1,0 +1,118 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+/* ── Container ─────────────────────────────────── */
+.voice-sphere {
+  --ring-color: rgba(255, 255, 255, 0.3);
+  --duration: 1.5s;
+  --max-scale: 2.5;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+}
+
+/* ── Center Circle (fixed 80px) ────────────────── */
+.center-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+
+  /* Gradient base */
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(124, 92, 191, 0.9),
+    rgba(79, 55, 139, 0.8) 40%,
+    rgba(30, 20, 60, 0.9) 80%
+  );
+  box-shadow:
+    0 0 60px rgba(124, 92, 191, 0.3),
+    inset 0 0 40px rgba(124, 92, 191, 0.15);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .listening & {
+    box-shadow:
+      0 0 80px rgba(74, 158, 255, 0.5),
+      inset 0 0 60px rgba(74, 158, 255, 0.2);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(74, 158, 255, 0.9),
+      rgba(50, 120, 220, 0.8) 40%,
+      rgba(20, 50, 100, 0.9) 80%
+    );
+  }
+
+  .speaking & {
+    box-shadow:
+      0 0 80px rgba(255, 140, 66, 0.5),
+      inset 0 0 60px rgba(255, 140, 66, 0.2);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(255, 140, 66, 0.9),
+      rgba(220, 100, 30, 0.8) 40%,
+      rgba(100, 50, 10, 0.9) 80%
+    );
+  }
+
+  .processing & {
+    box-shadow:
+      0 0 80px rgba(74, 158, 255, 0.4),
+      inset 0 0 60px rgba(74, 158, 255, 0.15);
+    animation: centerSpin 1.5s linear infinite;
+  }
+
+  .interrupted & {
+    box-shadow:
+      0 0 80px rgba(255, 215, 0, 0.5),
+      inset 0 0 60px rgba(255, 215, 0, 0.2);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(255, 215, 0, 0.9),
+      rgba(200, 160, 0, 0.8) 40%,
+      rgba(80, 60, 10, 0.9) 80%
+    );
+  }
+}
+
+/* ── Expanding Rings ───────────────────────────── */
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid var(--ring-color);
+  animation: ringPulse var(--duration, 1.5s) ease-out infinite;
+  opacity: 0;
+  pointer-events: none;
+  inset: -4px; /* start just outside the 80px center */
+}
+
+/* Stagger delays by ~400ms each */
+.ring-1 { animation-delay: 0s; }
+.ring-2 { animation-delay: 0.4s; }
+.ring-3 { animation-delay: 0.8s; }
+.ring-4 { animation-delay: 1.2s; }
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(var(--max-scale, 2.5));
+    opacity: 0;
+  }
+}
+
+@keyframes centerSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

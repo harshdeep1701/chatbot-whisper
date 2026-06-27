@@ -1,0 +1,23 @@
+<div class="toast-stack" *ngIf="(toastService.toasts$ | async)?.length">
+  <div
+    class="toast"
+    *ngFor="let t of toastService.toasts$ | async"
+    [class.success]="t.type === 'success'"
+    [class.error]="t.type === 'error'"
+    [class.warning]="t.type === 'warning'"
+    [class.info]="t.type === 'info'"
+    (click)="toastService.dismiss(t.id)"
+  >
+    <i
+      class="fas"
+      [class.fa-check-circle]="t.type === 'success'"
+      [class.fa-exclamation-circle]="t.type === 'error'"
+      [class.fa-exclamation-triangle]="t.type === 'warning'"
+      [class.fa-info-circle]="t.type === 'info'"
+    ></i>
+    <span>{{ t.message }}</span>
+    <button class="toast-close" (click)="$event.stopPropagation(); toastService.dismiss(t.id)">
+      <i class="fas fa-times"></i>
+    </button>
+  </div>
+</div>

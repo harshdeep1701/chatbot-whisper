@@ -1,0 +1,54 @@
+<canvas #particleCanvas class="particle-canvas"></canvas>
+
+<div class="auth-page" appCursor>
+  <div class="auth-card">
+    <div class="branding">
+      <img src="assets/voice-chatbot-favicon.svg" alt="Cosmo Chat" class="branding-logo" />
+      <span class="branding-name">Cosmo Chat</span>
+    </div>
+    <h1>Register</h1>
+
+    <div class="error" *ngIf="error">{{ error }}</div>
+
+    <label>Username</label>
+    <input
+      type="text"
+      [(ngModel)]="username"
+      placeholder="Choose a username"
+      (keydown.enter)="register()"
+    />
+
+    <label>Email</label>
+    <input
+      type="email"
+      [(ngModel)]="email"
+      placeholder="Enter your email"
+      (keydown.enter)="register()"
+    />
+
+    <label>Password</label>
+    <input
+      type="password"
+      [(ngModel)]="password"
+      placeholder="Choose a password (min 6 chars)"
+      (keydown.enter)="register()"
+    />
+
+    <label>Confirm Password</label>
+    <input
+      type="password"
+      [(ngModel)]="confirmPassword"
+      placeholder="Confirm your password"
+      (keydown.enter)="register()"
+    />
+
+    <button class="btn-primary" (click)="register()" [disabled]="isLoading">
+      <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+      {{ isLoading ? 'Creating account...' : 'Create account' }}
+    </button>
+
+    <p class="alt-link">
+      Already have an account? <a routerLink="/login">Login</a>
+    </p>
+  </div>
+</div>

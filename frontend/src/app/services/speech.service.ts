@@ -7,6 +7,13 @@ export interface SpeechEvent {
   error?: string;
 }
 
+export interface TtsBoundaryEvent {
+  /** Character index in the utterance text */
+  charIndex: number;
+  /** Length of the current word/segment */
+  charLength: number;
+}
+
 const MAX_DURATION_TIMEOUT_MS = 60000; // 1 minute max
 
 @Injectable({
@@ -18,6 +25,19 @@ export class SpeechService {
   private isListening = false;
 
   private maxDurationTimer: ReturnType<typeof setTimeout> | null = null;
+
+  /** Current SpeechSynthesisUtterance reference (for barge-in) */
+  private currentUtterance: SpeechSynthesisUtterance | null = null;
+
+  /** Emits word boundary events during TTS playback for volume simulation */
+  private ttsBoundarySubject = new Subject<TtsBoundaryEvent>();
+  readonly ttsBoundary$ = this.ttsBoundarySubject.asObservable();
+
+  /** Emits when TTS starts and ends */
+  private ttsStartedSubject = new Subject<void>();
+  readonly ttsStarted$ = this.ttsStartedSubject.asObservable();
+  private ttsEndedSubject = new Subject<void>();
+  readonly ttsEnded$ = this.ttsEndedSubject.asObservable();
 
   // Speech recognition events
   speechEvents$ = this.recognitionSubject.asObservable();
@@ -126,7 +146,12 @@ export class SpeechService {
     return this.isListening;
   }
 
-  // Text-to-Speech
+  // ── Text-to-Speech ───────────────────────────────────────
+
+  /**
+   * Speak text using Web Speech API.  Emits boundary events for volume
+   * simulation and calls `onEnd` when finished (unless cancelled).
+   */
   speak(text: string, onEnd?: () => void): void {
     if (!('speechSynthesis' in window)) {
       console.warn('Speech synthesis not supported');
@@ -137,15 +162,48 @@ export class SpeechService {
     utterance.lang = 'en-US';
     utterance.rate = 1.1;
     utterance.pitch = 1;
-    if (onEnd) {
-      utterance.onend = onEnd;
-    }
+
+    this.currentUtterance = utterance;
+
+    // Word boundary → volume pulse simulation
+    utterance.onboundary = (event: SpeechSynthesisEvent) => {
+      if (event.name === 'word') {
+        this.ttsBoundarySubject.next({
+          charIndex: event.charIndex,
+          charLength: event.charLength,
+        });
+      }
+    };
+
+    utterance.onstart = () => {
+      this.ttsStartedSubject.next();
+    };
+
+    utterance.onerror = () => {
+      /* suppress extension-related message channel errors */
+    };
+
+    utterance.onend = () => {
+      this.currentUtterance = null;
+      this.ttsEndedSubject.next();
+      if (onEnd) {
+        onEnd();
+      }
+    };
+
     window.speechSynthesis.speak(utterance);
   }
 
+  /** Stop current TTS and cancel any queued utterances */
   stopSpeaking(): void {
     if ('speechSynthesis' in window) {
       window.speechSynthesis.cancel();
     }
+    this.currentUtterance = null;
+  }
+
+  /** Reference to the current utterance (for barge-in checks) */
+  getCurrentUtterance(): SpeechSynthesisUtterance | null {
+    return this.currentUtterance;
   }
 }

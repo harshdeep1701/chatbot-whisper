@@ -1,0 +1,18 @@
+<div class="tts-player" *ngIf="text">
+  <!-- Play / Stop button -->
+  <button
+    class="play-btn"
+    [class.playing]="isPlaying"
+    (click)="isPlaying ? stop() : play()"
+    [title]="isPlaying ? 'Stop' : 'Read aloud'"
+  >
+    <i class="fas" [class.fa-volume-up]="!isPlaying" [class.fa-stop]="isPlaying"></i>
+    <span *ngIf="!isPlaying">Read aloud</span>
+    <span *ngIf="isPlaying">Stop</span>
+  </button>
+
+  <!-- Progress bar -->
+  <div class="progress-bar" *ngIf="isPlaying">
+    <div class="progress-fill" [style.width.%]="progress"></div>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="voice-overlay">
+  <!-- Backdrop click → exit -->
+  <div class="backdrop" (click)="exit()"></div>
+
+  <div class="voice-content">
+    <!-- Exit button -->
+    <button class="exit-btn" (click)="exit()" title="Exit voice mode">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <!-- ▼ Voice Sphere ────────────────────────────── -->
+    <div class="sphere-container">
+      <app-voice-sphere
+        [state]="state"
+        [volume]="(voiceStateService.volumeLevel$ | async) ?? 0"
+      >
+        <div class="sphere-icon">
+          <i
+            class="fas"
+            [class.fa-microphone]="state === 'LISTENING'"
+            [class.fa-circle-notch]="state === 'PROCESSING'"
+            [class.fa-spin]="state === 'PROCESSING'"
+            [class.fa-volume-up]="state === 'SPEAKING'"
+            [class.fa-bolt]="state === 'INTERRUPTED'"
+          ></i>
+        </div>
+      </app-voice-sphere>
+    </div>
+
+    <!-- ▼ Status label ───────────────────────────── -->
+    <div class="status">
+      <span *ngIf="state === 'LISTENING'" class="pulse">Listening...</span>
+      <span *ngIf="state === 'PROCESSING'">Processing...</span>
+      <span *ngIf="state === 'SPEAKING'">Speaking...</span>
+      <span *ngIf="state === 'INTERRUPTED'" class="interrupted">Interrupted — restarting...</span>
+      <span *ngIf="state === 'IDLE'" class="idle">Ready</span>
+    </div>
+
+    <!-- ▼ Error ──────────────────────────────────── -->
+    <div class="error" *ngIf="errorMessage">
+      <p>{{ errorMessage }}</p>
+      <button class="retry-btn" (click)="startVoiceSession()">
+        <i class="fas fa-redo"></i> Retry
+      </button>
+    </div>
+
+    <!-- ▼ Transcript / Response ──────────────────── -->
+    <div class="text-display" *ngIf="transcript || response">
+      <div class="transcript" *ngIf="transcript">
+        <span class="label">You said</span>
+        <p>{{ transcript }}</p>
+      </div>
+      <div class="response" *ngIf="response && state === 'SPEAKING'">
+        <span class="label">Response</span>
+        <p>{{ response }}</p>
+      </div>
+    </div>
+  </div>
+</div>

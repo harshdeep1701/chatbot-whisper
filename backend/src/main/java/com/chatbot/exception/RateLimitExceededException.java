@@ -1,8 +1,5 @@
-package com.chatbot.service;
+package com.chatbot.exception;
 
-/**
- * Thrown when a user has exceeded their daily token quota.
- */
 public class RateLimitExceededException extends RuntimeException {
     public RateLimitExceededException(String message) {
         super(message);

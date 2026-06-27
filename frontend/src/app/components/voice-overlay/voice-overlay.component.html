@@ -1,0 +1,61 @@
+<div class="overlay-backdrop" (click)="onBackdropClick()">
+  <div class="overlay-content" (click)="$event.stopPropagation()">
+
+    <!-- Close button -->
+    <button class="close-btn" (click)="closeOverlay()" title="Close voice mode">
+      <i class="fas fa-times"></i>
+    </button>
+
+    <!-- FEATURE 2+3: Persistent Sphere with Wave Ring Animation -->
+    <div class="sphere-container">
+      <app-voice-sphere
+        [voiceState]="voiceStateService.state$ | async"
+        [volume]="volumeLevel"
+      >
+        <div class="sphere-icon">
+          <i class="fas"
+             [class.fa-microphone]="state === 'idle' || state === 'listening'"
+             [class.fa-circle-notch]="state === 'thinking' || state === 'transcribing'"
+             [class.fa-spin]="state === 'thinking' || state === 'transcribing'"
+             [class.fa-exclamation-triangle]="state === 'error'"
+             [class.fa-volume-up]="state === 'speaking'"
+             [class.fa-bolt]="state === 'interrupted'"></i>
+        </div>
+      </app-voice-sphere>
+
+      <!-- Status label -->
+      <div class="status-label" *ngIf="state !== 'speaking' && state !== 'done' && state !== 'interrupted'">
+        <ng-container [ngSwitch]="state">
+          <span *ngSwitchCase="'idle'">Ready</span>
+          <span *ngSwitchCase="'listening'" class="pulsing-text">Listening...</span>
+          <span *ngSwitchCase="'transcribing'">Transcribing...</span>
+          <span *ngSwitchCase="'thinking'">Thinking...</span>
+          <span *ngSwitchCase="'error'" class="error-text">{{ errorMessage || 'Something went wrong' }}</span>
+        </ng-container>
+      </div>
+      <div class="status-label minimal-label" *ngIf="state === 'speaking'">
+        <span>Tap backdrop to close</span>
+      </div>
+      <div class="status-label interrupted-label" *ngIf="state === 'interrupted'">
+        <span class="pulsing-text">Interrupted — restarting...</span>
+      </div>
+
+      <!-- Transcript / Response display -->
+      <div class="text-display" *ngIf="transcriptText && state !== 'idle'">
+        <div class="transcript" *ngIf="transcriptText">
+          <span class="label">You said</span>
+          <p>{{ transcriptText }}</p>
+        </div>
+        <div class="response" *ngIf="responseText && state === 'speaking'">
+          <span class="label">Response</span>
+          <p>{{ responseText }}</p>
+        </div>
+      </div>
+
+      <!-- Error retry button -->
+      <button class="retry-btn" *ngIf="state === 'error'" (click)="startListening()">
+        <i class="fas fa-redo"></i> Try Again
+      </button>
+    </div>
+  </div>
+</div>

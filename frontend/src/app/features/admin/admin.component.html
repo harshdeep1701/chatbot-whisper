@@ -1,0 +1,104 @@
+<div class="admin-container">
+  <!-- Header -->
+  <div class="admin-header">
+    <button class="btn btn-secondary" routerLink="/chat">
+      <i class="fas fa-arrow-left"></i> Back to Chat
+    </button>
+    <h1><i class="fas fa-shield-alt"></i> Admin Panel</h1>
+    <button class="btn btn-primary" (click)="loadUsers()">
+      <i class="fas fa-sync-alt"></i> Refresh
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading" *ngIf="isLoading">
+    <i class="fas fa-spinner fa-spin"></i> Loading users...
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error">
+    <i class="fas fa-exclamation-triangle"></i> {{ error }}
+  </div>
+
+  <!-- Inline confirm modal -->
+  <div class="confirm-overlay" *ngIf="confirmAction">
+    <div class="confirm-box">
+      <p>{{ confirmAction.label }}</p>
+      <div class="confirm-actions">
+        <button class="btn btn-danger" (click)="confirmYes()">Confirm</button>
+        <button class="btn btn-secondary" (click)="confirmNo()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Users table -->
+  <div class="table-card" *ngIf="!isLoading && !error">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Username</th>
+          <th>Email</th>
+          <th>Role</th>
+          <th>Tier</th>
+          <th>Total Tokens</th>
+          <th>Remaining</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of users">
+          <td>{{ user.id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.email }}</td>
+          <td>
+            <span class="badge" [class.admin]="user.role === 'ADMIN'">
+              {{ user.role }}
+            </span>
+          </td>
+          <td>
+            <span class="badge" [class.premium]="user.tier === 'premium'">
+              {{ user.tier }}
+            </span>
+          </td>
+          <td class="num">{{ user.totalTokensUsed | number }}</td>
+          <td class="num">{{ user.remainingTokens | number }}</td>
+          <td class="actions">
+            <button
+              *ngIf="user.tier === 'free'"
+              class="btn-sm btn-success"
+              (click)="requestUpgrade(user)"
+              title="Upgrade to Premium"
+            >
+              <i class="fas fa-arrow-up"></i>
+            </button>
+            <button
+              *ngIf="user.tier === 'premium'"
+              class="btn-sm btn-warning"
+              (click)="requestDowngrade(user)"
+              title="Downgrade to Free"
+            >
+              <i class="fas fa-arrow-down"></i>
+            </button>
+            <button
+              *ngIf="user.role !== 'ADMIN'"
+              class="btn-sm btn-primary"
+              (click)="requestMakeAdmin(user)"
+              title="Make Admin"
+            >
+              <i class="fas fa-user-shield"></i>
+            </button>
+            <button
+              *ngIf="user.role === 'ADMIN'"
+              class="btn-sm btn-danger"
+              (click)="requestRemoveAdmin(user)"
+              title="Remove Admin"
+            >
+              <i class="fas fa-user-slash"></i>
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

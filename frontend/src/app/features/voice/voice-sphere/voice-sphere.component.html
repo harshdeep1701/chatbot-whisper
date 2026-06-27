@@ -1,0 +1,14 @@
+<div
+  class="voice-sphere"
+  [class]="stateClass"
+  [style.--ring-duration]="ringDuration"
+  [style.--ring-max-scale]="ringMaxScale"
+>
+  <!-- Fixed-size center circle (80px) -->
+  <div class="center-circle">
+    <ng-content></ng-content>
+  </div>
+
+  <!-- 3 concentric rings -->
+  <div class="ring" *ngFor="let i of ringCount"></div>
+</div>

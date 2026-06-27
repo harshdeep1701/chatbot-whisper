@@ -1,0 +1,137 @@
+:host {
+  display: block;
+  position: relative;
+}
+
+.voice-sphere {
+  --ring-duration: 1.5s;
+  --ring-max-scale: 2.5;
+
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+}
+
+/* ── Center circle (fixed 80px, never scales) ────── */
+.center-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  position: relative;
+  z-index: 2;
+
+  background: radial-gradient(
+    circle at 35% 35%,
+    rgba(124, 92, 191, 0.9),
+    rgba(79, 55, 139, 0.8) 40%,
+    rgba(30, 20, 60, 0.9) 80%
+  );
+  box-shadow:
+    0 0 60px rgba(124, 92, 191, 0.3),
+    inset 0 0 40px rgba(124, 92, 191, 0.15);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* LISTENING → cool blue */
+  .listening & {
+    box-shadow:
+      0 0 80px rgba(74, 158, 255, 0.5),
+      inset 0 0 60px rgba(74, 158, 255, 0.2);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(74, 158, 255, 0.9),
+      rgba(50, 120, 220, 0.8) 40%,
+      rgba(20, 50, 100, 0.9) 80%
+    );
+  }
+
+  /* SPEAKING → warm amber */
+  .speaking & {
+    box-shadow:
+      0 0 80px rgba(255, 140, 66, 0.5),
+      inset 0 0 60px rgba(255, 140, 66, 0.2);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(255, 140, 66, 0.9),
+      rgba(220, 100, 30, 0.8) 40%,
+      rgba(100, 50, 10, 0.9) 80%
+    );
+  }
+
+  /* PROCESSING → spin */
+  .processing & {
+    box-shadow:
+      0 0 80px rgba(74, 158, 255, 0.4),
+      inset 0 0 60px rgba(74, 158, 255, 0.15);
+    animation: centerSpin 1.5s linear infinite;
+  }
+
+  /* INTERRUPTED → red flash, then back to listening color */
+  .interrupted & {
+    box-shadow:
+      0 0 80px rgba(226, 75, 74, 0.5),
+      inset 0 0 60px rgba(226, 75, 74, 0.2);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(226, 75, 74, 0.9),
+      rgba(180, 40, 40, 0.8) 40%,
+      rgba(60, 15, 15, 0.9) 80%
+    );
+  }
+
+  /* IDLE → muted gray, dim glow */
+  .idle & {
+    box-shadow:
+      0 0 40px rgba(136, 135, 128, 0.2),
+      inset 0 0 20px rgba(136, 135, 128, 0.1);
+    background: radial-gradient(
+      circle at 35% 35%,
+      rgba(136, 135, 128, 0.7),
+      rgba(100, 100, 95, 0.6) 40%,
+      rgba(40, 40, 40, 0.8) 80%
+    );
+  }
+}
+
+/* ── Expanding rings (sonar pulses) ──────────────── */
+.ring {
+  position: absolute;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  animation: ringPulse var(--ring-duration, 1.5s) ease-out infinite;
+  opacity: 0;
+  pointer-events: none;
+  inset: -4px;
+}
+
+/* Colors per state (color the rings) */
+.listening .ring { color: #4A9EFF; }
+.speaking  .ring { color: #FF8C42; }
+.idle       .ring { color: #888780; }
+.interrupted .ring { color: #E24B4A; }
+.processing .ring { color: #4A9EFF; }
+
+/* Stagger 3 rings by ~400ms */
+.ring:nth-child(2) { animation-delay: 0.4s; }
+.ring:nth-child(3) { animation-delay: 0.8s; }
+
+@keyframes ringPulse {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(var(--ring-max-scale, 2.5));
+    opacity: 0;
+  }
+}
+
+@keyframes centerSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}

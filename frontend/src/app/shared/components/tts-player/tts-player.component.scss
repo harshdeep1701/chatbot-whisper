@@ -1,0 +1,67 @@
+:host {
+  display: inline-flex;
+}
+
+.tts-player {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── Play / Stop button ─────────────────────────── */
+.play-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.15));
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary, rgba(255, 255, 255, 0.7));
+  font-size: 13px;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+
+  &:hover {
+    background: var(--primary-light, rgba(124, 92, 191, 0.1));
+    color: var(--primary, #7c5cbf);
+    border-color: var(--primary, #7c5cbf);
+  }
+
+  &.playing {
+    background: var(--primary-light, rgba(124, 92, 191, 0.15));
+    color: var(--primary, #7c5cbf);
+    border-color: var(--primary, #7c5cbf);
+
+    i {
+      animation: pulse 1s ease-in-out infinite;
+    }
+  }
+
+  i {
+    font-size: 14px;
+  }
+}
+
+/* ── Progress bar ───────────────────────────────── */
+.progress-bar {
+  width: 64px;
+  height: 4px;
+  background: var(--border, rgba(255, 255, 255, 0.1));
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-gradient, linear-gradient(135deg, #7c5cbf, #4d9e8a));
+  border-radius: 2px;
+  transition: width 0.15s linear;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.4; }
+}

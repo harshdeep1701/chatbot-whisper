@@ -12,6 +12,8 @@ public class AuditService {
 
     private static final Logger log = LoggerFactory.getLogger(AuditService.class);
 
+    private static final int MAX_DATA_LENGTH = 2000;
+
     private final AuditLogRepository auditLogRepository;
 
     public AuditService(AuditLogRepository auditLogRepository) {
@@ -22,20 +24,19 @@ public class AuditService {
                     String requestData, String responseData, String conversationId,
                     HttpServletRequest request) {
         try {
-            AuditLog auditLog = AuditLog.builder()
+            var ipAddress = request != null ? request.getRemoteAddr() : null;
+            var auditLog = AuditLog.builder()
                     .userId(userId)
                     .username(username)
                     .action(action)
                     .endpoint(endpoint)
-                    .requestData(truncate(requestData, 2000))
-                    .responseData(truncate(responseData, 2000))
+                    .requestData(truncate(requestData))
+                    .responseData(truncate(responseData))
                     .conversationId(conversationId)
-                    .ipAddress(request != null ? request.getRemoteAddr() : null)
+                    .ipAddress(ipAddress)
                     .build();
-
             auditLogRepository.save(auditLog);
-            log.debug("Audit log saved: action={}, userId={}, conversationId={}",
-                    action, userId, conversationId);
+            log.debug("Audit log saved: action={}, userId={}", action, userId);
         } catch (Exception e) {
             log.warn("Failed to save audit log: {}", e.getMessage());
         }
@@ -46,8 +47,8 @@ public class AuditService {
         log(action, endpoint, userId, username, requestData, responseData, conversationId, null);
     }
 
-    private String truncate(String s, int maxLen) {
+    private static String truncate(String s) {
         if (s == null) return null;
-        return s.length() <= maxLen ? s : s.substring(0, maxLen) + "... [truncated]";
+        return s.length() <= MAX_DATA_LENGTH ? s : s.substring(0, MAX_DATA_LENGTH) + "... [truncated]";
     }
 }

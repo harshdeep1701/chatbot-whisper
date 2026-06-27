@@ -2,17 +2,12 @@ package com.chatbot.controller;
 
 import com.chatbot.dto.ChatRequest;
 import com.chatbot.dto.ChatResponse;
-import com.chatbot.dto.ChatResult;
 import com.chatbot.service.AuditService;
 import com.chatbot.service.DeepSeekService;
-import com.chatbot.service.RateLimitExceededException;
 import com.chatbot.service.TokenQuotaService;
 import com.chatbot.service.UserService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -22,8 +17,6 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/chat")
 public class ChatController {
-
-    private static final Logger log = LoggerFactory.getLogger(ChatController.class);
 
     private final DeepSeekService deepSeekService;
     private final AuditService auditService;
@@ -44,116 +37,37 @@ public class ChatController {
     public ResponseEntity<ChatResponse> chat(@Valid @RequestBody ChatRequest request,
                                               Authentication auth,
                                               HttpServletRequest httpRequest) {
-        String username = auth != null ? auth.getName() : "anonymous";
-        Long userId = auth != null ? (Long) auth.getCredentials() : 0L;
-        String convHint = request.getConversationId();
-        String msgPreview = request.getMessage().length() > 100
-                ? request.getMessage().substring(0, 100) + "..."
-                : request.getMessage();
-        log.info("Chat request received — user={}, conversationId={}, messageLength={}",
-                username, convHint != null ? convHint : "new", request.getMessage().length());
+        var username = auth != null ? auth.getName() : "anonymous";
+        var userId = auth != null ? (Long) auth.getCredentials() : 0L;
 
-        try {
-            // ── 1. Check daily token quota ──
-            tokenQuotaService.checkQuota(userId);
+        tokenQuotaService.checkQuota(userId);
 
-            // ── 2. Process the chat ──
-            String conversationId = deepSeekService.getConversationId(request.getConversationId());
-            ChatResult result = deepSeekService.sendMessage(
-                    request.getMessage(),
-                    conversationId,
-                    request.getHistory()
-            );
+        var conversationId = deepSeekService.getConversationId(request.conversationId());
+        var result = deepSeekService.sendMessage(request.message(), conversationId, request.history());
 
-            // ── 3. Record token usage ──
-            tokenQuotaService.recordUsage(userId, result.getTotalTokens());
+        tokenQuotaService.recordUsage(userId, result.totalTokens());
 
-            // ── 4. Audit log ──
-            auditService.log(
-                    "CHAT_MESSAGE", "/api/chat", userId, username,
-                    "message=" + msgPreview + " | historySize=" +
-                            (request.getHistory() != null ? request.getHistory().size() : 0) +
-                            " | tokens=" + result.getTotalTokens(),
-                    "responseLength=" + result.getReply().length() + " chars",
-                    conversationId, httpRequest
-            );
+        auditService.log("CHAT_MESSAGE", "/api/chat", userId, username,
+                "messageLength=" + request.message().length() + " | tokens=" + result.totalTokens(),
+                "responseLength=" + result.reply().length() + " chars",
+                conversationId, httpRequest);
 
-            log.info("Chat response sent — user={}, conversationId={}, responseLength={} chars, tokens={}",
-                    username, conversationId, result.getReply().length(), result.getTotalTokens());
-            return ResponseEntity.ok(new ChatResponse(result.getReply(), conversationId));
-
-        } catch (RateLimitExceededException e) {
-            log.warn("Chat rejected — daily limit reached — user={}, message={}",
-                    username, e.getMessage());
-            auditService.log(
-                    "CHAT_RATE_LIMITED", "/api/chat", userId, username,
-                    "messageLength=" + request.getMessage().length(),
-                    "error=" + e.getMessage(),
-                    request.getConversationId(), httpRequest
-            );
-            return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS.value())
-                    .body(ChatResponse.error(e.getMessage()));
-
-        } catch (Exception e) {
-            String errorMsg = e.getMessage();
-            boolean isSearchError = errorMsg != null &&
-                    errorMsg.contains("Web search is temporarily unavailable");
-
-            if (isSearchError) {
-                log.warn("Chat aborted — search service unavailable — user={}, error: {}",
-                        username, errorMsg);
-                auditService.log(
-                        "CHAT_SEARCH_ERROR", "/api/chat", userId, username,
-                        "messageLength=" + request.getMessage().length(),
-                        "error=" + errorMsg,
-                        request.getConversationId(), httpRequest
-                );
-                return ResponseEntity.status(503)
-                        .body(ChatResponse.error(errorMsg));
-            }
-
-            log.error("Chat request failed — user={}, messageLength={}, error: {}",
-                    username, request.getMessage().length(), errorMsg, e);
-            auditService.log(
-                    "CHAT_ERROR", "/api/chat", userId, username,
-                    "messageLength=" + request.getMessage().length(),
-                    "error=" + errorMsg,
-                    request.getConversationId(), httpRequest
-            );
-            return ResponseEntity.internalServerError()
-                    .body(ChatResponse.error("Failed to process chat: " + errorMsg));
-        }
+        return ResponseEntity.ok(ChatResponse.ok(result.reply(), conversationId));
     }
 
-    /**
-     * Returns the authenticated user's own daily token quota.
-     * Accessible to any authenticated user (no ADMIN role required).
-     * GET /api/chat/quota
-     */
     @GetMapping("/quota")
     public ResponseEntity<Map<String, Object>> getMyQuota(Authentication auth) {
-        Long userId = auth != null ? (Long) auth.getCredentials() : 0L;
-        try {
-            String tier = userService.getUserTier(userId);
-            int remaining = tokenQuotaService.getRemainingTokens(userId);
-            int totalUsed = tokenQuotaService.getTotalTokensUsed(userId);
-            return ResponseEntity.ok(Map.of(
-                    "userId", userId,
-                    "tier", tier,
-                    "remainingTokens", remaining,
-                    "totalTokensUsed", totalUsed
-            ));
-        } catch (Exception e) {
-            log.error("Failed to fetch quota for userId={}: {}", userId, e.getMessage());
-            return ResponseEntity.badRequest().body(Map.of(
-                    "success", false, "error", e.getMessage()
-            ));
-        }
+        var userId = auth != null ? (Long) auth.getCredentials() : 0L;
+        var tier = userService.getUserTier(userId);
+        var remaining = tokenQuotaService.getRemainingTokens(userId);
+        var totalUsed = tokenQuotaService.getTotalTokensUsed(userId);
+        return ResponseEntity.ok(Map.of(
+                "userId", userId, "tier", tier,
+                "remainingTokens", remaining, "totalTokensUsed", totalUsed));
     }
 
     @GetMapping("/health")
     public ResponseEntity<String> health() {
-        log.debug("Health check requested");
         return ResponseEntity.ok("Chat service is running");
     }
 }

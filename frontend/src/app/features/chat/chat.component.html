@@ -1,0 +1,162 @@
+<div class="chat-container">
+  <!-- ▼ Messages Area ────────────────────────────────── -->
+  <div class="messages" #messagesContainer>
+    <div class="welcome" *ngIf="messages.length === 1">
+      <div class="welcome-icon">
+        <i class="fas fa-comment-dots"></i>
+      </div>
+      <h2>Cosmo-Chat</h2>
+      <p>Ask me anything! I support both text and voice input.</p>
+    </div>
+
+    <div
+      class="message-wrapper"
+      *ngFor="let msg of messages; let i = index"
+      [class.user]="msg.role === 'user'"
+      [class.system]="msg.role === 'system'"
+      [class.message--entering]="i === enteringMessageIndex"
+    >
+      <div
+        class="message"
+        [class.user-message]="msg.role === 'user'"
+        [class.bot-message]="msg.role !== 'user'"
+      >
+        <!-- Bot avatar -->
+        <div class="avatar" *ngIf="msg.role !== 'user'">
+          <img
+            src="assets/voice-chatbot-favicon.svg"
+            alt="AI"
+            class="bot-avatar-img"
+          />
+        </div>
+
+        <!-- User avatar -->
+        <div class="avatar user-avatar" *ngIf="msg.role === 'user'">
+          <i class="fas fa-user"></i>
+        </div>
+
+        <!-- Bubble -->
+        <div class="bubble" [class.user-bubble]="msg.role === 'user'">
+          <div
+            class="message-text"
+            [innerHTML]="msg.content | markdown"
+          ></div>
+          <div class="message-time">
+            {{ msg.timestamp | date: 'shortTime' }}
+          </div>
+
+          <!-- ▼ Per-message "Read Aloud" button (bot messages only) ── -->
+          <button
+            *ngIf="msg.role === 'assistant'"
+            class="read-aloud-inline"
+            (click)="readAloud(msg.content)"
+            [title]="isSpeaking ? 'Stop' : 'Read aloud'"
+          >
+            <i
+              class="fas"
+              [class.fa-volume-up]="!isSpeaking"
+              [class.fa-stop]="isSpeaking"
+            ></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing indicator with animated dots -->
+    <div class="message-wrapper typing-wrapper" *ngIf="isTyping && !isTranscribing">
+      <div class="message bot-message">
+        <div class="avatar">
+          <img
+            src="assets/voice-chatbot-favicon.svg"
+            alt="AI"
+            class="bot-avatar-img"
+          />
+        </div>
+        <div class="bubble typing-bubble">
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+          <span class="typing-dot"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ▼ Input Area ──────────────────────────────────── -->
+  <div class="input-area">
+    <div class="input-wrapper" [class.processing]="isTranscribing">
+      <!-- Processing overlay -->
+      <div class="processing-flash" *ngIf="isTranscribing">
+        <i class="fas fa-circle-notch fa-spin"></i>
+        <span>Processing voice input...</span>
+      </div>
+
+      <textarea
+        [(ngModel)]="userInput"
+        (keydown.enter)="$event.preventDefault(); sendMessage()"
+        [placeholder]="isTranscribing ? 'Transcribing...' : 'Type your message...'"
+        rows="1"
+        class="message-input"
+        [disabled]="isLoading"
+      ></textarea>
+
+      <div class="action-buttons">
+        <!-- Waveform visualizer (recording) -->
+        <app-waveform-visualizer
+          *ngIf="isRecording && analyserNode"
+          [analyserNode]="analyserNode"
+          [isPlaying]="false"
+        ></app-waveform-visualizer>
+
+        <!-- Waveform visualizer (TTS playing) -->
+        <app-waveform-visualizer
+          *ngIf="isSpeaking && !isRecording"
+          [analyserNode]="null"
+          [isPlaying]="true"
+        ></app-waveform-visualizer>
+
+        <!-- Quota ring -->
+        <app-quota-ring
+          *ngIf="(quotaService.quotaTotal$ | async) !== null"
+          [totalQuota]="(quotaService.quotaTotal$ | async) ?? 1000000"
+          [remainingQuota]="(quotaService.remainingTokens$ | async) ?? 0"
+        ></app-quota-ring>
+
+        <!-- Voice Record (Whisper STT) -->
+        <button
+          class="action-btn mic-btn"
+          [class.mic--recording]="isRecording"
+          [class.processing]="isTranscribing"
+          (click)="toggleVoiceRecord()"
+          [title]="isRecording ? 'Stop recording' : (isTranscribing ? 'Transcribing...' : 'Click to record voice')"
+        >
+          <i
+            class="fas"
+            [class.fa-microphone]="!isTranscribing && !isRecording"
+            [class.fa-circle]="isRecording"
+            [class.fa-spinner]="isTranscribing"
+            [class.fa-spin]="isTranscribing"
+          ></i>
+        </button>
+
+        <!-- Voice-Only Mode -->
+        <button
+          class="action-btn voice-mode-btn"
+          (click)="openVoiceMode()"
+          title="Voice-only mode"
+        >
+          <i class="fas fa-globe"></i>
+        </button>
+
+        <!-- Send -->
+        <button
+          class="action-btn send-btn"
+          (click)="sendMessage()"
+          [disabled]="!userInput.trim() || isLoading"
+          title="Send message"
+        >
+          <i class="fas fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

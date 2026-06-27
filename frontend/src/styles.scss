@@ -53,12 +53,34 @@
   --radius-xs: 4px;
   --transition: all 0.2s ease;
   --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+
+  /* ── Dark accent system ── */
+  --color-bg: #0d0f14;
+  --color-bg-elevated: #13161e;
+  --color-accent: #6366f1;
+  --color-accent-cyan: #22d3ee;
+  --color-accent-glow: rgba(99, 102, 241, 0.35);
+
+  /* ── Cosmo-Chat dark purple theme ── */
+  --cc-bg-deep:      #0e0c1a;
+  --cc-bg-base:      #13101f;
+  --cc-bg-raised:    #1a1530;
+  --cc-bg-elevated:  #1e1832;
+  --cc-border:       #2a2040;
+  --cc-border-soft:  #3a2f5a;
+  --cc-accent:       #6c4fd0;
+  --cc-accent-hover: #7d62db;
+  --cc-text-primary: #e2d9f3;
+  --cc-text-second:  #c4b8e0;
+  --cc-text-muted:   #9b8cc4;
+  --cc-text-faint:   #5a4f7a;
+  --cc-text-dim:     #4a3f6a;
 }
 
 body {
   font-family: var(--font-family);
-  background: var(--bg);
-  color: var(--text-primary);
+  background: var(--cc-bg-deep, #0e0c1a);
+  color: var(--cc-text-primary, #e2d9f3);
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -73,8 +95,8 @@ app-root {
 /* Scrollbar styling */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--text-light); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
+::-webkit-scrollbar-thumb { background: var(--cc-border-soft, #3a2f5a); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--cc-text-faint, #5a4f7a); }
 
 /* ── Animations ── */
 @keyframes fadeIn {
@@ -200,16 +222,16 @@ app-root {
 
 /* ── Material Design card ── */
 .mat-card {
-  background: var(--bg-card);
+  background: var(--cc-bg-raised, #1a1530);
   border-radius: var(--radius);
-  box-shadow: var(--shadow);
-  border: 1px solid var(--border);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--cc-border, #2a2040);
 }
 
 .mat-card-elevated {
-  background: var(--bg-card);
+  background: var(--cc-bg-elevated, #1e1832);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* ── Material Design badge ── */
@@ -225,8 +247,8 @@ app-root {
 }
 
 .mat-badge-primary {
-  background: var(--primary-light);
-  color: var(--primary);
+  background: rgba(108, 79, 208, 0.15);
+  color: var(--cc-accent, #6c4fd0);
 }
 
 .mat-badge-secondary {
@@ -252,4 +274,29 @@ app-root {
 .mat-badge-rose {
   background: var(--accent-rose-light);
   color: #c85a7a;
+}
+
+/* ── Dark themed secondary button override ── */
+.mat-btn-secondary {
+  background: var(--cc-bg-elevated, #1e1832);
+  color: var(--cc-text-muted, #9b8cc4);
+  border: 1px solid var(--cc-border, #2a2040);
+
+  &:hover:not(:disabled) {
+    border-color: var(--cc-accent, #6c4fd0);
+    color: var(--cc-text-primary, #e2d9f3);
+    background: rgba(108, 79, 208, 0.12);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+}
+
+/* ── Reduced motion ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

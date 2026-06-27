@@ -11,6 +11,13 @@
   flex: 1;
   min-height: 0;
   background: var(--bg);
+  transition: filter 0.3s ease;
+
+  &.blurred {
+    filter: blur(4px) brightness(0.6);
+    pointer-events: none;
+    user-select: none;
+  }
 }
 
 /* Messages Area */
@@ -489,6 +496,17 @@
 
   &:not(.active) {
     opacity: 0.6;
+  }
+}
+
+.voice-mode-btn {
+  color: var(--text-secondary);
+  transition: var(--transition);
+
+  &.active,
+  &:hover {
+    color: var(--accent-teal);
+    background: var(--accent-teal-light, rgba(77, 182, 142, 0.1));
   }
 }
 

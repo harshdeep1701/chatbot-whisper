@@ -4,6 +4,8 @@ import com.chatbot.config.JwtTokenProvider;
 import com.chatbot.dto.AuthResponse;
 import com.chatbot.dto.LoginRequest;
 import com.chatbot.dto.RegisterRequest;
+import com.chatbot.exception.AuthException;
+import com.chatbot.exception.UserNotFoundException;
 import com.chatbot.model.User;
 import com.chatbot.repository.UserRepository;
 import org.slf4j.Logger;
@@ -11,6 +13,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -31,104 +34,83 @@ public class UserService {
     }
 
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            log.warn("Registration failed — username already exists: {}", request.getUsername());
+        if (userRepository.existsByUsername(request.username())) {
+            log.warn("Registration failed: username={}, reason=already exists", request.username());
             return AuthResponse.error("Username already taken");
         }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            log.warn("Registration failed — email already exists: {}", request.getEmail());
+        if (userRepository.existsByEmail(request.email())) {
+            log.warn("Registration failed: email={}, reason=already exists", request.email());
             return AuthResponse.error("Email already registered");
         }
 
-        User user = new User(
-                request.getUsername(),
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword())
+        var user = new User(
+                request.username(),
+                request.email(),
+                passwordEncoder.encode(request.password())
         );
         user = userRepository.save(user);
 
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId(), user.getRole());
+        var token = jwtTokenProvider.generateToken(user.getUsername(), user.getId(), user.getRole());
         log.info("User registered successfully: username={}, id={}", user.getUsername(), user.getId());
-        return new AuthResponse(token, user.getUsername(), user.getId());
+        return AuthResponse.ok(token, user.getUsername(), user.getId());
     }
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByUsername(request.getUsername()).orElse(null);
-        if (user == null) {
-            log.warn("Login failed — user not found: {}", request.getUsername());
+        var user = userRepository.findByUsername(request.username()).orElse(null);
+        if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
+            log.warn("Login failed: username={}", request.username());
             return AuthResponse.error("Invalid username or password");
         }
 
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            log.warn("Login failed — invalid password for user: {}", request.getUsername());
-            return AuthResponse.error("Invalid username or password");
-        }
-
-        String token = jwtTokenProvider.generateToken(user.getUsername(), user.getId(), user.getRole());
+        var token = jwtTokenProvider.generateToken(user.getUsername(), user.getId(), user.getRole());
         log.info("User logged in: username={}, id={}", user.getUsername(), user.getId());
-        return new AuthResponse(token, user.getUsername(), user.getId());
+        return AuthResponse.ok(token, user.getUsername(), user.getId());
     }
 
-    /**
-     * Upgrades a user to premium tier (1M tokens/day).
-     * Intended for admin use only — not exposed via UI.
-     */
     public void upgradeToPremium(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = findUser(userId);
         user.setPremium(true);
-        user.setPremiumUpgradedAt(java.time.LocalDateTime.now());
+        user.setPremiumUpgradedAt(LocalDateTime.now());
         userRepository.save(user);
-        log.info("User upgraded to premium: username={}, id={}", user.getUsername(), userId);
+        log.info("User upgraded to premium: id={}", userId);
     }
 
-    /**
-     * Returns the user's current tier.
-     */
     public String getUserTier(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = findUser(userId);
         return user.isPremium() ? "premium" : "free";
     }
 
-    /**
-     * Returns all users ordered by creation date (newest first).
-     */
     public List<User> listAllUsers() {
         return userRepository.findAllByOrderByCreatedAtDesc();
     }
 
-    /**
-     * Downgrades a user from premium back to free tier.
-     */
     public void downgradeToFree(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = findUser(userId);
         user.setPremium(false);
         user.setPremiumUpgradedAt(null);
         userRepository.save(user);
-        log.info("User downgraded to free: username={}, id={}", user.getUsername(), userId);
+        log.info("User downgraded to free: id={}", userId);
     }
 
-    /**
-     * Grants ADMIN role to a user.
-     */
     public void makeAdmin(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = findUser(userId);
         user.setRole("ADMIN");
         userRepository.save(user);
-        log.info("User promoted to ADMIN: username={}, id={}", user.getUsername(), userId);
+        log.info("User promoted to ADMIN: id={}", userId);
     }
 
-    /**
-     * Removes ADMIN role from a user (demotes to USER).
-     */
     public void removeAdmin(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = findUser(userId);
         user.setRole("USER");
         userRepository.save(user);
-        log.info("ADMIN role removed: username={}, id={}", user.getUsername(), userId);
+        log.info("ADMIN role removed: id={}", userId);
+    }
+
+    private User findUser(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> {
+                    log.warn("User not found: id={}", userId);
+                    return new UserNotFoundException(userId);
+                });
     }
 }

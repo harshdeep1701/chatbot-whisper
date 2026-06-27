@@ -37,7 +37,7 @@ export class AdminComponent implements OnInit {
         this.isLoading = false;
       },
       error: (err) => {
-        this.error = err.error?.error || 'Failed to load users. Are you an admin?';
+        this.error = err.error?.detail || err.error?.error || 'Failed to load users. Are you an admin?';
         this.isLoading = false;
       }
     });
@@ -49,7 +49,7 @@ export class AdminComponent implements OnInit {
         this.actionMessage = `${user.username} upgraded to premium`;
         this.loadUsers();
       },
-      error: (err) => this.actionMessage = err.error?.error || 'Upgrade failed'
+      error: (err) => this.actionMessage = err.error?.detail || err.error?.error || 'Upgrade failed'
     });
   }
 
@@ -59,7 +59,7 @@ export class AdminComponent implements OnInit {
         this.actionMessage = `${user.username} downgraded to free`;
         this.loadUsers();
       },
-      error: (err) => this.actionMessage = err.error?.error || 'Downgrade failed'
+      error: (err) => this.actionMessage = err.error?.detail || err.error?.error || 'Downgrade failed'
     });
   }
 
@@ -70,7 +70,7 @@ export class AdminComponent implements OnInit {
           this.actionMessage = `${user.username} is no longer admin`;
           this.loadUsers();
         },
-        error: (err) => this.actionMessage = err.error?.error || 'Failed'
+        error: (err) => this.actionMessage = err.error?.detail || err.error?.error || 'Failed'
       });
     } else {
       this.adminService.makeAdmin(user.id).subscribe({
@@ -78,7 +78,7 @@ export class AdminComponent implements OnInit {
           this.actionMessage = `${user.username} is now an admin`;
           this.loadUsers();
         },
-        error: (err) => this.actionMessage = err.error?.error || 'Failed'
+        error: (err) => this.actionMessage = err.error?.detail || err.error?.error || 'Failed'
       });
     }
   }

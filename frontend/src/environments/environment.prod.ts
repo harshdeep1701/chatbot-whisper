@@ -1,6 +1,11 @@
 export const environment = {
   production: true,
+  apiBase: '',
   apiUrl: '/api',
   deepseekModel: 'deepseek-chat',
-  enableVoice: true
+  enableVoice: true,
+  bargeInThreshold: 0.04,
+  sttSilenceMs: 1500,
+  sttMaxDurationMs: 8000,
+  quotaPollIntervalMs: 30000,
 };

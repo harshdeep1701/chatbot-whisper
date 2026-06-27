@@ -1,23 +1,18 @@
 package com.chatbot.service;
 
+import com.chatbot.config.properties.RateLimitProperties;
+import com.chatbot.exception.RateLimitExceededException;
+import com.chatbot.exception.UserNotFoundException;
 import com.chatbot.model.TokenUsage;
-import com.chatbot.model.User;
 import com.chatbot.repository.TokenUsageRepository;
 import com.chatbot.repository.UserRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
-/**
- * Tracks daily token usage per user and enforces per-user rate limits.
- * <p>
- * Free tier:  {@code 100,000} tokens/day
- * Premium tier: {@code 1,000,000} tokens/day
- */
 @Service
 public class TokenQuotaService {
 
@@ -25,89 +20,74 @@ public class TokenQuotaService {
 
     private final TokenUsageRepository tokenUsageRepository;
     private final UserRepository userRepository;
-
-    @Value("${ratelimit.free.daily-tokens:100000}")
-    private int freeDailyLimit;
-
-    @Value("${ratelimit.premium.daily-tokens:1000000}")
-    private int premiumDailyLimit;
+    private final RateLimitProperties rateLimitProperties;
 
     public TokenQuotaService(TokenUsageRepository tokenUsageRepository,
-                             UserRepository userRepository) {
+                             UserRepository userRepository,
+                             RateLimitProperties rateLimitProperties) {
         this.tokenUsageRepository = tokenUsageRepository;
         this.userRepository = userRepository;
+        this.rateLimitProperties = rateLimitProperties;
     }
 
-    /**
-     * Checks whether the user has quota remaining for today.
-     *
-     * @throws RateLimitExceededException if the user is over their daily limit
-     */
     public void checkQuota(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
-        int limit = user.isPremium() ? premiumDailyLimit : freeDailyLimit;
+        var limit = user.isPremium()
+                ? rateLimitProperties.premium().dailyTokens()
+                : rateLimitProperties.free().dailyTokens();
 
-        TokenUsage todayUsage = tokenUsageRepository
+        var todayUsage = tokenUsageRepository
                 .findByUserIdAndUsageDate(userId, LocalDate.now())
                 .orElse(null);
 
-        int used = (todayUsage != null) ? todayUsage.getTokensUsed() : 0;
+        var used = todayUsage != null ? todayUsage.getTokensUsed() : 0;
 
         if (used >= limit) {
-            String tier = user.isPremium() ? "premium" : "free";
-            log.warn("Daily token limit reached — userId={}, tier={}, used={}, limit={}",
+            var tier = user.isPremium() ? "premium" : "free";
+            log.warn("Daily token limit reached: userId={}, tier={}, used={}, limit={}",
                     userId, tier, used, limit);
             throw new RateLimitExceededException(
-                    "Daily token limit reached (" + used + "/" + limit + "). " +
-                    "Your " + tier + " tier allows " + limit + " tokens per day. " +
-                    (user.isPremium() ? "Please try again tomorrow." : "Upgrade to premium for higher limits.")
-            );
+                    "Daily token limit reached (%d/%d). Your %s tier allows %d tokens per day."
+                            .formatted(used, limit, tier, limit));
         }
 
-        log.debug("Quota OK — userId={}, used={}, limit={}", userId, used, limit);
+        log.debug("Quota OK: userId={}, used={}, limit={}", userId, used, limit);
     }
 
-    /**
-     * Records token consumption for a user on today's date.
-     * Accumulates with any existing usage for today.
-     */
     @Transactional
     public void recordUsage(Long userId, int tokens) {
         if (tokens <= 0) return;
 
-        LocalDate today = LocalDate.now();
-        TokenUsage usage = tokenUsageRepository
+        var today = LocalDate.now();
+        var usage = tokenUsageRepository
                 .findByUserIdAndUsageDate(userId, today)
                 .orElse(new TokenUsage(userId, today, 0));
 
         usage.setTokensUsed(usage.getTokensUsed() + tokens);
         tokenUsageRepository.save(usage);
 
-        log.info("Token usage recorded — userId={}, todayTotal={}, added={}",
+        log.info("Token usage recorded: userId={}, todayTotal={}, added={}",
                 userId, usage.getTokensUsed(), tokens);
     }
 
-    /**
-     * Returns the user's remaining tokens for today.
-     */
     public int getRemainingTokens(Long userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new RuntimeException("User not found: " + userId));
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(userId));
 
-        int limit = user.isPremium() ? premiumDailyLimit : freeDailyLimit;
-        TokenUsage todayUsage = tokenUsageRepository
+        var limit = user.isPremium()
+                ? rateLimitProperties.premium().dailyTokens()
+                : rateLimitProperties.free().dailyTokens();
+
+        var todayUsage = tokenUsageRepository
                 .findByUserIdAndUsageDate(userId, LocalDate.now())
                 .orElse(null);
 
-        int used = (todayUsage != null) ? todayUsage.getTokensUsed() : 0;
+        var used = todayUsage != null ? todayUsage.getTokensUsed() : 0;
         return Math.max(0, limit - used);
     }
 
-    /**
-     * Returns total tokens ever consumed by a user (all-time, not just today).
-     */
     public int getTotalTokensUsed(Long userId) {
         return tokenUsageRepository.getTotalTokensUsedByUser(userId);
     }

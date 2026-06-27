@@ -1,4 +1,11 @@
-<div class="chat-container">
+<app-voice-overlay
+  *ngIf="voiceOverlayVisible"
+  (close)="onVoiceOverlayClosed()"
+  (messageUser)="onVoiceOverlayUserMessage($event)"
+  (messageAssistant)="onVoiceOverlayAssistantMessage($event)"
+></app-voice-overlay>
+
+<div class="chat-container" [class.blurred]="voiceOverlayVisible">
   <!-- Messages Area -->
   <div class="messages" #messagesContainer>
     <div class="welcome" *ngIf="messages.length === 1">
@@ -81,6 +88,16 @@
           title="Stop speaking"
         >
           <i class="fas fa-volume-off"></i>
+        </button>
+
+        <!-- Voice Mode (fullscreen overlay) -->
+        <button
+          class="action-btn voice-mode-btn"
+          [class.active]="voiceOverlayVisible"
+          (click)="toggleVoiceOverlay()"
+          title="Voice-only mode"
+        >
+          <i class="fas fa-globe"></i>
         </button>
 
         <!-- Voice Input -->

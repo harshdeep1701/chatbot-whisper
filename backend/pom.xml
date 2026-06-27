@@ -60,6 +60,12 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
+        <!-- Spring Retry (for @Retryable on HTTP clients) -->
+        <dependency>
+            <groupId>org.springframework.retry</groupId>
+            <artifactId>spring-retry</artifactId>
+        </dependency>
+
         <!-- Dotenv - loads .env file automatically -->
         <dependency>
             <groupId>me.paulschwarz</groupId>

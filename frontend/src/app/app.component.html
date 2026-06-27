@@ -1,11 +1,22 @@
 <div class="app-container">
+  <!-- Mobile hamburger -->
+  <button class="hamburger-btn" *ngIf="!isAuthPage()" (click)="toggleSidebar()" aria-label="Toggle sidebar">
+    <i class="fas fa-bars"></i>
+  </button>
+
+  <!-- Sidebar overlay for mobile -->
+  <div class="sidebar-overlay" *ngIf="sidebarOpen" (click)="closeSidebar()"></div>
+
   <!-- Sidebar (only show on chat/authenticated pages) -->
-  <aside class="sidebar" *ngIf="!isAuthPage()">
+  <aside class="sidebar" *ngIf="!isAuthPage()" [class.open]="sidebarOpen">
     <div class="sidebar-header">
       <div class="logo">
         <img src="assets/voice-chatbot-favicon.svg" alt="Cosmo-Chat" class="sidebar-logo-img" />
         <span>Cosmo-Chat</span>
       </div>
+      <button class="sidebar-close-btn" (click)="closeSidebar()" aria-label="Close sidebar">
+        <i class="fas fa-times"></i>
+      </button>
     </div>
     <div class="sidebar-content">
       <div class="model-badge">
@@ -14,6 +25,24 @@
       </div>
       <div class="intro-text">
         <p>Voice-enabled AI assistant with speech-to-text and text-to-speech capabilities.</p>
+      </div>
+
+      <!-- STT / TTS Settings moved from top bar -->
+      <div class="sidebar-settings">
+        <div class="setting-group">
+          <label><i class="fas fa-microphone"></i> Listener Tool</label>
+          <select [ngModel]="getSettings().sttProvider" (ngModelChange)="setSttProvider($event)">
+            <option value="browser">Browser</option>
+            <option value="whisper">Whisper</option>
+          </select>
+        </div>
+        <div class="setting-group">
+          <label><i class="fas fa-volume-up"></i> Speaker Tool</label>
+          <select [ngModel]="getSettings().ttsProvider" (ngModelChange)="setTtsProvider($event)">
+            <option value="browser">Browser</option>
+            <option value="server">Server</option>
+          </select>
+        </div>
       </div>
     </div>
     <div class="sidebar-footer">
@@ -24,10 +53,6 @@
         <span class="user-name">{{ currentUser.username }}</span>
       </div>
       <div class="footer-buttons">
-        <button class="settings-btn" (click)="toggleSettings()">
-          <i class="fas fa-cog"></i>
-          <span>Settings</span>
-        </button>
         <button
           *ngIf="isAdmin"
           class="admin-btn"
@@ -49,7 +74,7 @@
     <router-outlet></router-outlet>
   </main>
 
-  <!-- Settings Panel -->
-  <div class="settings-overlay" *ngIf="showSettings" (click)="showSettings = false"></div>
-  <app-settings *ngIf="showSettings" (close)="showSettings = false"></app-settings>
+
+  <!-- Global toast notifications -->
+  <app-toast-container></app-toast-container>
 </div>

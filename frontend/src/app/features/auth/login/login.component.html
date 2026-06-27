@@ -1,0 +1,38 @@
+<canvas #particleCanvas class="particle-canvas"></canvas>
+
+<div class="auth-page" appCursor>
+  <div class="auth-card">
+    <div class="branding">
+      <img src="assets/voice-chatbot-favicon.svg" alt="Cosmo Chat" class="branding-logo" />
+      <span class="branding-name">Cosmo Chat</span>
+    </div>
+    <h1>Login</h1>
+
+    <div class="error" *ngIf="error">{{ error }}</div>
+
+    <label>Username</label>
+    <input
+      type="text"
+      [(ngModel)]="username"
+      placeholder="Enter your username"
+      (keydown.enter)="login()"
+    />
+
+    <label>Password</label>
+    <input
+      type="password"
+      [(ngModel)]="password"
+      placeholder="Enter your password"
+      (keydown.enter)="login()"
+    />
+
+    <button class="btn-primary" (click)="login()" [disabled]="isLoading">
+      <i class="fas fa-spinner fa-spin" *ngIf="isLoading"></i>
+      {{ isLoading ? 'Signing in...' : 'Sign in' }}
+    </button>
+
+    <p class="alt-link">
+      Don't have an account? <a routerLink="/register">Register</a>
+    </p>
+  </div>
+</div>
