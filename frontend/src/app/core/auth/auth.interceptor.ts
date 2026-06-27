@@ -37,6 +37,6 @@ export class AuthInterceptor implements HttpInterceptor {
 
   /** Heuristic: does the URL target our backend API? */
   private isApiCall(url: string): boolean {
-    return url.startsWith('http') && url.includes('/api/');
+    return (url.startsWith('http') || url.startsWith('/api/')) && url.includes('/api/');
   }
 }
