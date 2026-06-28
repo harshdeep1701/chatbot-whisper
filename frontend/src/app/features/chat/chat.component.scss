@@ -395,8 +395,16 @@
 /* Input Area */
 .input-area {
   padding: 16px 24px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   background: var(--cc-bg-base, #13101f);
   border-top: 1px solid var(--cc-border, #2a2040);
+}
+
+/* ── Mobile: elevate input area above browser/OS nav bars ── */
+@media (max-width: 480px), (hover: none) and (pointer: coarse) {
+  .input-area {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 16px));
+  }
 }
 
 .input-wrapper {
@@ -708,6 +716,7 @@
 
   .input-area {
     padding: 10px 10px 28px;
+    padding-bottom: calc(28px + env(safe-area-inset-bottom, 0px));
   }
 
   .input-wrapper {

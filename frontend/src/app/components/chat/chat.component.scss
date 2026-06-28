@@ -325,8 +325,16 @@
 /* Input Area */
 .input-area {
   padding: 16px 24px 24px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
   background: var(--bg);
   border-top: 1px solid var(--border);
+}
+
+/* ── Mobile: elevate above browser/OS nav bars ── */
+@media (max-width: 480px), (hover: none) and (pointer: coarse) {
+  .input-area {
+    padding-bottom: calc(20px + env(safe-area-inset-bottom, 16px));
+  }
 }
 
 .input-wrapper {

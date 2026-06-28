@@ -103,9 +103,10 @@ export class RegisterComponent implements OnInit, OnDestroy, AfterViewInit {
             this.error = res.error || 'Registration failed';
           }
         },
-        error: () => {
+        error: err => {
           this.isLoading = false;
-          this.error = 'Connection error. Is the server running?';
+          const body = err.error;
+          this.error = body?.error || body?.detail || 'Connection error. Is the server running?';
         },
       });
   }

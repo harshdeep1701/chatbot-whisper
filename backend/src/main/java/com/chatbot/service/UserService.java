@@ -56,9 +56,15 @@ public class UserService {
     }
 
     public AuthResponse login(LoginRequest request) {
-        var user = userRepository.findByUsername(request.username()).orElse(null);
+        var credential = request.username().trim();
+        var user = userRepository.findByUsernameIgnoreCase(credential).orElse(null);
+
+        if (user == null) {
+            user = userRepository.findByEmailIgnoreCase(credential).orElse(null);
+        }
+
         if (user == null || !passwordEncoder.matches(request.password(), user.getPassword())) {
-            log.warn("Login failed: username={}", request.username());
+            log.warn("Login failed: credential={}", credential);
             return AuthResponse.error("Invalid username or password");
         }
 

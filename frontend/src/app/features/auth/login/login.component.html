@@ -10,11 +10,11 @@
 
     <div class="error" *ngIf="error">{{ error }}</div>
 
-    <label>Username</label>
+    <label>Username or Email</label>
     <input
       type="text"
       [(ngModel)]="username"
-      placeholder="Enter your username"
+      placeholder="Enter your username or email"
       (keydown.enter)="login()"
     />
 

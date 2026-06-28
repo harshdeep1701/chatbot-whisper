@@ -3,7 +3,7 @@
 
 export type UserRole = 'USER' | 'ADMIN';
 
-/** POST /api/auth/login request body */
+/** POST /api/auth/login request body (username accepts username or email, case-insensitive) */
 export interface LoginRequest {
   username: string;
   password: string;

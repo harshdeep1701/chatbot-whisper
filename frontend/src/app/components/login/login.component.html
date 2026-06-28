@@ -11,7 +11,7 @@
 
     <form (ngSubmit)="login()" class="auth-form">
       <div class="form-group">
-        <label for="username">Username</label>
+        <label for="username">Username or Email</label>
         <div class="input-wrapper">
           <i class="fas fa-user input-icon"></i>
           <input
@@ -19,7 +19,7 @@
             type="text"
             [(ngModel)]="username"
             name="username"
-            placeholder="Enter your username"
+            placeholder="Enter your username or email"
             required
             autocomplete="username"
           />
